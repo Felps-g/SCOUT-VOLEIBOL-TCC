@@ -6,7 +6,6 @@
 
 import { v4 as uuid } from 'uuid';
 import { supabase } from '../config/supabase.js';
-import { formatarErro } from '../utils/helpers.js';
 
 // ============================================
 // LISTAR TODOS OS JOGADORES
@@ -123,21 +122,15 @@ export const buscarJogador = async (req, res) => {
 // ============================================
 // POST /api/players
 // Header: Authorization: Bearer <token>
-// Body: { name, position, height, cpf, team_id }
+// Body: { name, position, height, cpf, team_id, jersey_number?, rg?, age?, weight?, photo_url? }
 // Cria um novo registro de jogador no banco de dados
 export const criarJogador = async (req, res) => {
   try {
     const userId = req.user.id;
     // Extrai os dados enviados no corpo da requisição
-    const {
-      name, nome, position, height, cpf, team_id, teamId, jersey_number,
-      rg, age, idade, weight, peso, photo_url, foto
-    } = req.body;
+    const { name, nome, position, height, cpf, team_id, teamId, jersey_number, rg, age, weight, photo_url } = req.body;
     const nomeJogador = name || nome;
     const teamIdResolvido = team_id || teamId;
-    const idadeResolvida = age ?? idade;
-    const pesoResolvido = weight || peso;
-    const fotoResolvida = photo_url || foto;
 
     // Valida se todos os campos obrigatórios foram enviados
     if (!nomeJogador || !position || !height || !cpf || !teamIdResolvido) {
@@ -173,12 +166,18 @@ export const criarJogador = async (req, res) => {
     if (jersey_number !== undefined) {
       novoJogador.jersey_number = jersey_number;
     }
-    // Campos opcionais (não fazem parte da validação obrigatória acima,
-    // mas precisam ser salvos quando o técnico preenche eles no formulário)
-    if (rg !== undefined && rg !== '') novoJogador.rg = rg;
-    if (idadeResolvida !== undefined && idadeResolvida !== '') novoJogador.age = idadeResolvida;
-    if (pesoResolvido !== undefined && pesoResolvido !== '') novoJogador.weight = pesoResolvido;
-    if (fotoResolvida !== undefined && fotoResolvida !== '') novoJogador.photo_url = fotoResolvida;
+
+    // campos opcionais adicionados depois (RG, idade, peso, foto) — a tela
+    // de "Adicionar atleta" já manda tudo isso, mas esse controller nunca
+    // tinha sido atualizado pra ler e salvar. `age` é SMALLINT no banco,
+    // então precisa virar número (ou nem entrar no objeto, se vier vazio).
+    if (rg) novoJogador.rg = rg;
+    if (weight) novoJogador.weight = weight;
+    if (photo_url) novoJogador.photo_url = photo_url;
+    if (age !== undefined && age !== null && String(age).trim() !== '') {
+      const idadeNumero = Number(age);
+      if (!Number.isNaN(idadeNumero)) novoJogador.age = idadeNumero;
+    }
 
     // Insere o novo jogador no banco de dados
     const { data, error } = await supabase
@@ -187,7 +186,10 @@ export const criarJogador = async (req, res) => {
       .select();  // .select() retorna os dados inseridos
 
     if (error) {
-      return res.status(400).json(formatarErro('Erro ao criar jogador', error));
+      return res.status(400).json({ 
+        mensagem: 'Erro ao criar jogador', 
+        erro: error.message 
+      });
     }
 
     // Retorna status 201 (Created) com os dados do novo jogador
@@ -208,20 +210,14 @@ export const criarJogador = async (req, res) => {
 // ============================================
 // PUT /api/players/:id
 // Header: Authorization: Bearer <token>
-// Body: { name?, position?, height?, cpf? }
+// Body: { name?, position?, height?, cpf?, jersey_number?, rg?, age?, weight?, photo_url? }
 // Atualiza os dados de um jogador existente (campos opcionais)
 export const atualizarJogador = async (req, res) => {
   try {
     const userId = req.user.id;
     const playerId = req.params.id;
     // Extrai apenas os campos que foram enviados na requisição
-    const {
-      name, position, height, cpf, jersey_number,
-      rg, age, idade, weight, peso, photo_url, foto
-    } = req.body;
-    const idadeResolvida = age ?? idade;
-    const pesoResolvido = weight || peso;
-    const fotoResolvida = photo_url || foto;
+    const { name, position, height, cpf, jersey_number, rg, age, weight, photo_url } = req.body;
 
     // Busca o jogador para verificar se pertence ao treinador
     const { data: player, error: playerError } = await supabase
@@ -257,10 +253,25 @@ export const atualizarJogador = async (req, res) => {
     if (height) camposAtualizar.height = height;
     if (jersey_number !== undefined) camposAtualizar.jersey_number = jersey_number;
     if (cpf) camposAtualizar.cpf = cpf;
-    if (rg !== undefined) camposAtualizar.rg = rg;
-    if (idadeResolvida !== undefined) camposAtualizar.age = idadeResolvida;
-    if (pesoResolvido !== undefined) camposAtualizar.weight = pesoResolvido;
-    if (fotoResolvida !== undefined) camposAtualizar.photo_url = fotoResolvida;
+
+    // RG, peso e foto: string vazia limpa o campo (vira null), assim como
+    // já acontecia implicitamente antes de esses campos existirem.
+    if (rg !== undefined) camposAtualizar.rg = rg || null;
+    if (weight !== undefined) camposAtualizar.weight = weight || null;
+    if (photo_url !== undefined) camposAtualizar.photo_url = photo_url || null;
+
+    // `age` é SMALLINT no banco — nunca pode receber string vazia
+    // (o Postgres rejeita com "invalid input syntax for type smallint",
+    // que é exatamente o tipo de erro que aparece quando um campo novo
+    // não é tratado direito no controller).
+    if (age !== undefined) {
+      if (String(age).trim() === '') {
+        camposAtualizar.age = null;
+      } else {
+        const idadeNumero = Number(age);
+        if (!Number.isNaN(idadeNumero)) camposAtualizar.age = idadeNumero;
+      }
+    }
 
     // Atualiza o jogador com o ID especificado
     const { data, error } = await supabase

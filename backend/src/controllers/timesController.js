@@ -85,9 +85,9 @@ export const buscarTime = async (req, res) => {
 export const criarTime = async (req, res) => {
   try {
     const userId = req.user.id;
-    const nomeTime = (req.body?.name || '').trim();
+    const { name } = req.body;
 
-    if (!nomeTime) {
+    if (!name) {
       return res.status(400).json({
         mensagem: 'Nome do time é obrigatório'
       });
@@ -97,7 +97,7 @@ export const criarTime = async (req, res) => {
     const novoTime = {
       id: uuid(),
       user_id: userId,
-      name: nomeTime
+      name
     };
 
     const { data, error } = await supabase
@@ -106,16 +106,8 @@ export const criarTime = async (req, res) => {
       .select();
 
     if (error) {
-      // "new row violates row-level security policy" é o sintoma mais comum
-      // quando SUPABASE_SERVICE_ROLE_KEY não está configurada no .env do
-      // backend — o cliente cai pra anon key e o insert é barrado pelo RLS.
-      // Sem essa mensagem específica, o técnico só via um erro genérico do
-      // Postgres e a tela parecia simplesmente "não deixar criar o time".
-      const ehErroDePermissao = /row-level security/i.test(error.message || '');
       return res.status(400).json({
-        mensagem: ehErroDePermissao
-          ? 'O servidor não tem permissão para gravar no banco. Configure SUPABASE_SERVICE_ROLE_KEY no .env do backend e reinicie o servidor.'
-          : 'Erro ao criar time',
+        mensagem: 'Erro ao criar time',
         erro: error.message
       });
     }

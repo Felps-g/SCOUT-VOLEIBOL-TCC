@@ -22,36 +22,11 @@ class AcoesService {
     }
 
     const sets = await matchDb.buscarSetsPorMatch(matchId);
-
-    // IMPORTANTE: `set_number` (o set escolhido pelo técnico na tela do
-    // Scout Live) é priorizado sobre `set_id`. O Scout Live busca o "set
-    // atual" uma única vez no início e reusa esse mesmo `set_id` para todas
-    // as ações da sessão, mesmo quando o técnico troca de Set 1 pra Set
-    // 2/3 na interface — sem essa priorização, TODAS as ações caíam sempre
-    // no primeiro set criado automaticamente, e o gráfico "Desempenho por
-    // Set" na página de detalhe do jogo nunca refletia os sets reais.
-    // Quando o set pedido ainda não existe (ex: técnico virou pro Set 2 sem
-    // nenhum set 2 criado no banco), criamos na hora em vez de falhar.
-    let setAtual = acaoData.set_number
-      ? sets.find(set => Number(set.set_number) === Number(acaoData.set_number))
-      : acaoData.set_id
-        ? sets.find(set => set.id === acaoData.set_id)
+    const setAtual = acaoData.set_id
+      ? sets.find(set => set.id === acaoData.set_id)
+      : acaoData.set_number
+        ? sets.find(set => Number(set.set_number) === Number(acaoData.set_number))
         : sets.find(set => set.status !== 'finished') || sets[sets.length - 1];
-
-    if (!setAtual && acaoData.set_number) {
-      setAtual = await matchDb.criarSet({
-        id: gerarId(),
-        match_id: matchId,
-        set_number: Number(acaoData.set_number),
-        home_points: 0,
-        away_points: 0,
-        status: 'active',
-        started_at: new Date().toISOString(),
-        finished_at: null,
-        winner_team_id: null,
-        created_at: new Date().toISOString()
-      });
-    }
 
     if (!setAtual) {
       throw new Error('Nenhum set ativo para este jogo');

@@ -60,25 +60,11 @@ export const calcularEstatisticasAcao = (acoes) => {
   };
 };
 
-// "new row violates row-level security policy" (ou "permission denied for
-// table") é o sintoma quando SUPABASE_SERVICE_ROLE_KEY não está configurada
-// no .env — o backend cai pra anon key e toda escrita nas tabelas de jogo
-// (que têm RLS habilitado de propósito) é barrada. Sem essa detecção, cada
-// controller devolvia só o erro cru do Postgres e o problema real (env mal
-// configurado) ficava escondido atrás de uma mensagem genérica.
-const MENSAGEM_ERRO_PERMISSAO =
-  'O servidor não tem permissão para gravar no banco. Configure SUPABASE_SERVICE_ROLE_KEY no .env do backend e reinicie o servidor.';
-
-export const formatarErro = (mensagem, erro) => {
-  const detalhe = erro?.message || erro;
-  const ehErroDePermissao = /row-level security|permission denied/i.test(String(detalhe || ''));
-
-  return {
-    mensagem: ehErroDePermissao ? MENSAGEM_ERRO_PERMISSAO : mensagem,
-    erro: detalhe,
-    timestamp: new Date().toISOString()
-  };
-};
+export const formatarErro = (mensagem, erro) => ({
+  mensagem,
+  erro: erro?.message || erro,
+  timestamp: new Date().toISOString()
+});
 
 export const validarResultado = (resultado) =>
   LISTA_RESULTADOS.includes(resultado?.toLowerCase());

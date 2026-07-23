@@ -42,11 +42,7 @@ router.post('/login', async (req, res) => {
       refresh_token: data.session.refresh_token,
       usuario: {
         id: data.user.id,
-        email: data.user.email,
-        // nome vem do user_metadata (preenchido no cadastro); sem isso o
-        // frontend não tinha como mostrar o nome do técnico no avatar depois
-        // do login, só o e-mail.
-        nome: data.user.user_metadata?.nome || data.user.email.split('@')[0]
+        email: data.user.email
       },
       expires_in: data.session.expires_in
     });
@@ -101,8 +97,7 @@ router.post('/registrar', async (req, res) => {
       mensagem: 'Registro realizado com sucesso',
       usuario: {
         id: data.user.id,
-        email: data.user.email,
-        nome: data.user.user_metadata?.nome || data.user.email.split('@')[0]
+        email: data.user.email
       }
     });
   } catch (erro) {
