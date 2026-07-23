@@ -123,7 +123,6 @@ export default function Jogos() {
             <span className="jogo-adversario">
               {jogo.adversarioNome}
               <span className="jogo-data jogo-data--inline">{formatarData(jogo.data_jogo)}</span>
-              {jogo.local && <span className="jogo-local">{jogo.local}</span>}
             </span>
             <span className="jogo-placar">
               {jogo.home_score ?? 0}<span className="x">×</span>{jogo.away_score ?? 0}

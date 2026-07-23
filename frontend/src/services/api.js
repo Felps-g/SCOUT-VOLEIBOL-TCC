@@ -16,38 +16,6 @@ export function clearAuthToken() {
   localStorage.removeItem('authToken');
 }
 
-// ── USUÁRIO LOGADO ───────────────────────────
-// Login.jsx salva o usuário retornado pela API em 'scout_usuario' logo
-// depois do login. Qualquer página (avatar no cabeçalho, Perfil, etc.)
-// pode usar isso pra saber se tem alguém logado e quem é, sem precisar
-// pedir de novo pro backend.
-export function getUsuarioLogado() {
-  try {
-    const bruto = localStorage.getItem('scout_usuario');
-    return bruto ? JSON.parse(bruto) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function setUsuarioLogado(usuario) {
-  if (usuario) {
-    localStorage.setItem('scout_usuario', JSON.stringify(usuario));
-  }
-}
-
-export function estaLogado() {
-  return Boolean(getAuthToken() && getUsuarioLogado());
-}
-
-// limpa tudo (token + dados do usuário + time selecionado) e manda pro login
-export function logout() {
-  clearAuthToken();
-  localStorage.removeItem('scout_usuario');
-  localStorage.removeItem('time_selecionado');
-  window.location.hash = '#/login';
-}
-
 export async function apiRequest(path, { method = 'GET', body, auth = true } = {}) {
   const headers = {};
 

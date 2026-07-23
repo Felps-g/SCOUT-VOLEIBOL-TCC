@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../../css/login.css';
 import { apiRequest, setAuthToken } from '../services/api.js';
+import { buscarPerfilAtual, salvarUsuarioLogado } from '../services/auth.js';
 
 // ── MÁSCARA DE CPF ───────────────────────────
 function aplicarMascaraCpf(valor) {
@@ -114,7 +115,15 @@ export default function Login() {
       });
 
       setAuthToken(dados.token);
-      localStorage.setItem('scout_usuario', JSON.stringify(dados.usuario));
+
+      // o /auth/login só devolve id e email; buscamos o perfil completo
+      // (com o nome cadastrado) pra usar no avatar e na tela de perfil.
+      try {
+        await buscarPerfilAtual();
+      } catch {
+        salvarUsuarioLogado(dados.usuario);
+      }
+
       window.location.hash = '';
     } catch (err) {
       setErroLogin(err.message);

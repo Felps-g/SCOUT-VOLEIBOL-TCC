@@ -244,7 +244,6 @@ export default function DetalheJogo() {
             <span className="jogo-adversario">{adversarioNome}</span>
             <div className="jogo-meta">
               <span className="jogo-data">{formatarData(jogo.data_jogo)}</span>
-              {jogo.local && <span className="jogo-data">📍 {jogo.local}</span>}
               <span className="jogo-placar">
                 {jogo.home_score ?? 0} <span className="x">×</span> {jogo.away_score ?? 0}
               </span>

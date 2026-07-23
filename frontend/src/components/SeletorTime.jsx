@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react';
 import { listarTimes, criarTime, getTimeSelecionado, setTimeSelecionado } from '../services/time.js';
-
-// Componente pequeno e autocontido: busca os times reais do técnico
-// logado, deixa escolher um como "time selecionado" (guardado no
-// localStorage) e permite criar um time novo quando ainda não existe
-// nenhum. Sem isso, não havia NENHUM lugar no frontend que criasse ou
-// selecionasse um time — por isso o ScoutLive nunca conseguia salvar nada.
 export default function SeletorTime({ onChange }) {
   const [times, setTimes] = useState([]);
   const [carregando, setCarregando] = useState(true);

@@ -73,7 +73,7 @@ export default function Atletas() {
 
         {!carregando && !timeAtual && (
           <p style={{ color: '#fff', opacity: 0.7 }}>
-            Você ainda não tem um time. Crie o seu time na tela de Escalação antes de cadastrar atletas.
+            Você ainda não tem um time. Crie o seu time na aba Scout live antes de cadastrar atletas.
           </p>
         )}
 

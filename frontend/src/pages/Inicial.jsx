@@ -4,15 +4,11 @@ import perfil1Img from '../assets/IMG/perfil1.png';
 import bolaImg from '../assets/IMG/bola.png';
 import atletasImg from '../assets/IMG/atletas.png';
 import perfilImg from '../assets/IMG/perfil.png';
-import { getUsuarioLogado } from '../services/api.js';
+import { getUsuarioLogado, obterIniciais } from '../services/auth.js';
 
 export default function Inicial() {
-  // se tiver usuário salvo (login já feito), mostra o nome dele no chip do
-  // cabeçalho em vez do "Entrar" fixo — antes essa checagem não existia,
-  // então o cabeçalho nunca dava nenhuma pista de que já estava logado.
   const usuario = getUsuarioLogado();
-  const primeiroNome = usuario?.nome?.split(' ')[0] || usuario?.email?.split('@')[0];
-  const inicial = (primeiroNome?.[0] || '?').toUpperCase();
+  const nomeExibido = usuario ? (usuario.nome || usuario.email) : 'Entrar';
 
   return (
     <div className="aplicativo">
@@ -25,21 +21,16 @@ export default function Inicial() {
         <h1 className="logo">SCOUT LIVE</h1>
 
         <div className="cabecalho-direita">
-          {usuario ? (
-            <a href="#/perfil" className="usuario-chip" id="usuarioChip">
-              <div className="usuario-avatar" id="usuarioAvatar">
-                <span className="usuario-avatar-letra">{inicial}</span>
-              </div>
-              <span className="usuario-nome">{primeiroNome}</span>
-            </a>
-          ) : (
-            <a href="#/login" className="usuario-chip" id="usuarioChip">
-              <div className="usuario-avatar" id="usuarioAvatar">
+          <a href={usuario ? '#/perfil' : '#/login'} className="usuario-chip" id="usuarioChip">
+            <div className="usuario-avatar" id="usuarioAvatar">
+              {usuario ? (
+                <span className="usuario-avatar-iniciais">{obterIniciais(nomeExibido)}</span>
+              ) : (
                 <img src={perfil1Img} className="icone-usuario" />
-              </div>
-              <span className="usuario-nome">Entrar</span>
-            </a>
-          )}
+              )}
+            </div>
+            {!usuario && <span className="usuario-nome">{nomeExibido}</span>}
+          </a>
         </div>
       </header>
 

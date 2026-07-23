@@ -8,23 +8,26 @@ import editarImg from '../assets/IMG/editar.png';
 import olhoImg from '../assets/IMG/olho.png';
 import olhoFechadoImg from '../assets/IMG/olho-fechado.png';
 import casaImg from '../assets/IMG/casa.png';
-import { apiRequest, getUsuarioLogado, setUsuarioLogado, logout } from '../services/api.js';
+import { apiRequest } from '../services/api.js';
+import { estaLogado, buscarPerfilAtual, limparSessao } from '../services/auth.js';
 
 export default function Perfil() {
   // guarda a instância do cropper pra poder destruir quando fechar
   const cropperRef = useRef(null);
+
+  // controla se tem alguém logado; começa com o que já está salvo localmente
+  // e é confirmado (ou desfeito) buscando o perfil real no backend
+  const [logado, setLogado] = useState(estaLogado());
+  const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
   const [fotoSrc, setFotoSrc]             = useState('');
   const [modalCropAberto, setModalCropAberto] = useState(false);
   const [imagemCropSrc, setImagemCropSrc]   = useState('');
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
 
-  const usuarioSalvo = getUsuarioLogado();
-
-  const [perfilNome, setPerfilNome]   = useState(usuarioSalvo?.nome || '');
-  const [valorEmail, setValorEmail]   = useState(usuarioSalvo?.email || '');
-  const [valorCpf,   setValorCpf]     = useState('•••.•••.•••-••');
-  const [carregandoPerfil, setCarregandoPerfil] = useState(true);
+  const [perfilNome, setPerfilNome]   = useState('');
+  const [valorEmail, setValorEmail]   = useState('');
+  const [valorCpf,   setValorCpf]     = useState('Não informado');
 
   const [editNome,  setEditNome]  = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -35,6 +38,32 @@ export default function Perfil() {
 
   const inputFotoRef  = useRef(null);
   const imagemCropRef = useRef(null);
+
+  // CARREGAR DADOS DO TÉCNICO LOGADO
+  // se não tiver ninguém logado, nem tenta buscar — a tela mostra o aviso de login.
+  // se tiver, busca os dados reais no backend (fonte da verdade, não só o cache local).
+  useEffect(() => {
+    if (!estaLogado()) {
+      setLogado(false);
+      setCarregandoPerfil(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        const usuario = await buscarPerfilAtual();
+        setPerfilNome(usuario.nome || usuario.email || '');
+        setValorEmail(usuario.email || '');
+        setLogado(true);
+      } catch (err) {
+        // token expirado ou inválido: trata como deslogado
+        limparSessao();
+        setLogado(false);
+      } finally {
+        setCarregandoPerfil(false);
+      }
+    })();
+  }, []);
 
   // FOTO DE PERFIL
   // o botão de editar foto aciona o input de arquivo escondido
@@ -138,42 +167,31 @@ export default function Perfil() {
     setModalEditarAberto(false);
   }
 
-  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
-  const [erroEditar, setErroEditar] = useState('');
-
   // salva as alterações e atualiza a tela
   async function confirmarEditar() {
     // nome e email são obrigatórios
     if (!editNome.trim())  { destacarVazio('editNome');  return; }
     if (!editEmail.trim()) { destacarVazio('editEmail'); return; }
 
-    setErroEditar('');
-    setSalvandoEdicao(true);
     try {
-      // A API (PUT /auth/profile) hoje só atualiza o nome (user_metadata) —
-      // trocar e-mail/senha no Supabase Auth exige um fluxo de confirmação
-      // separado (link por e-mail / senha atual), então por enquanto só o
-      // nome é realmente persistido aqui.
-      const resposta = await apiRequest('/auth/profile', {
+      // o backend (Supabase) atualiza o nome pelo /auth/profile;
+      // troca de e-mail e senha usam fluxos próprios, então por enquanto
+      // só o nome é persistido de fato aqui.
+      await apiRequest('/auth/profile', {
         method: 'PUT',
         body: { nome: editNome.trim() }
       });
 
-      const nomeAtualizado = resposta?.usuario?.user_metadata?.nome || editNome.trim();
-      setPerfilNome(nomeAtualizado);
-      setValorEmail(editEmail.trim());
-      if (editCpf) setValorCpf(editCpf);
-      setUsuarioLogado({ id: resposta?.usuario?.id, nome: nomeAtualizado, email: resposta?.usuario?.email || valorEmail });
+      // mantém os dados locais em sincronia com o que acabou de ser salvo
+      const usuarioAtualizado = await buscarPerfilAtual();
 
-      if (editSenha) {
-        setErroEditar('Nome atualizado. Pra trocar a senha, use "Esqueceu a senha?" na tela de login por enquanto.');
-      } else {
-        fecharModalEditar();
-      }
+      setPerfilNome(usuarioAtualizado.nome || editNome.trim());
+      setValorEmail(usuarioAtualizado.email || editEmail.trim());
+      if (editCpf) setValorCpf(editCpf);
+
+      fecharModalEditar();
     } catch (err) {
-      setErroEditar(err.message || 'Erro ao atualizar perfil');
-    } finally {
-      setSalvandoEdicao(false);
+      alert(err.message || 'Não foi possível salvar as alterações.');
     }
   }
 
@@ -198,32 +216,43 @@ export default function Perfil() {
 
   // SAIR DA CONTA
   function handleSair() {
-    logout(); // limpa token + usuário + time selecionado e manda pro login
+    limparSessao();
+    window.location.hash = '#/login';
   }
 
-  // carrega os dados reais do técnico logado. O que já veio salvo do login
-  // (localStorage) aparece na hora; essa chamada só confirma/atualiza com o
-  // que está no Supabase Auth (ex: se o nome foi editado em outro dispositivo).
-  useEffect(() => {
-    let ativo = true;
-    async function carregarPerfil() {
-      try {
-        const resposta = await apiRequest('/auth/profile');
-        if (!ativo) return;
-        const nome = resposta?.usuario?.user_metadata?.nome || resposta?.usuario?.email?.split('@')[0] || '';
-        const email = resposta?.usuario?.email || '';
-        setPerfilNome(nome);
-        setValorEmail(email);
-        setUsuarioLogado({ id: resposta?.usuario?.id, nome, email });
-      } catch {
-        // se falhar (ex: token expirado), fica com o que já tinha em cache
-      } finally {
-        if (ativo) setCarregandoPerfil(false);
-      }
-    }
-    carregarPerfil();
-    return () => { ativo = false; };
-  }, []);
+  // enquanto verifica se tem sessão ativa, não mostra nada pra evitar
+  // o "flash" do aviso de login antes dos dados carregarem
+  if (carregandoPerfil) {
+    return <div className="pagina-app"></div>;
+  }
+
+  // sem sessão ativa: mostra aviso pedindo login em vez de qualquer dado da conta
+  if (!logado) {
+    return (
+      <div className="pagina-app">
+        <main className="perfil-conteudo perfil-conteudo--vazio">
+          <div className="perfil-login-aviso">
+            <div className="perfil-login-icone">
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+            <h1 className="perfil-login-titulo">Você não está logado</h1>
+            <p className="perfil-login-texto">Faça login para ver e editar as informações da sua conta.</p>
+            <a href="#/login" className="perfil-login-botao">Fazer login</a>
+          </div>
+        </main>
+
+        <footer className="rodape">
+          <a href="#" className="botao-inicio">
+            <img src={casaImg} className="icone-casa" />
+            Início
+          </a>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="pagina-app">
@@ -253,7 +282,7 @@ export default function Perfil() {
 
             </div>
 
-            <span className="perfil-nome" id="perfilNome">{perfilNome || (carregandoPerfil ? 'Carregando…' : '—')}</span>
+            <span className="perfil-nome" id="perfilNome">{perfilNome}</span>
             <span className="perfil-cargo">Técnico</span>
             <div className="perfil-divider"></div>
 
@@ -345,13 +374,9 @@ export default function Perfil() {
             </div>
           </div>
 
-          {erroEditar && <p className="mensagem-erro" style={{ marginTop: 4 }}>{erroEditar}</p>}
-
           <div className="modal-acoes">
             <button className="btn-modal-cancelar" id="btnEditarCancelar" onClick={fecharModalEditar}>Cancelar</button>
-            <button className="btn-modal-confirmar" id="btnEditarConfirmar" onClick={confirmarEditar} disabled={salvandoEdicao}>
-              {salvandoEdicao ? 'Salvando...' : 'Salvar'}
-            </button>
+            <button className="btn-modal-confirmar" id="btnEditarConfirmar" onClick={confirmarEditar}>Salvar</button>
           </div>
 
         </div>
