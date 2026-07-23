@@ -1,0 +1,250 @@
+/* titulo */
+
+.atletas-titulo-wrapper {
+  padding: 24px 24px 0;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.atletas-titulo {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+
+.atletas-conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.atletas-barra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btn-adicionar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0e4385, #0062ff);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-family: "Nexa", Arial, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.2s, transform 0.1s;
+  text-decoration: none;
+}
+
+.btn-mais {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-adicionar:hover  { opacity: 0.88; }
+.btn-adicionar:active { transform: scale(0.96); }
+
+.atletas-busca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+
+.atletas-busca:focus-within {
+  border-color: rgba(45,127,255,0.5);
+}
+
+.icone-busca {
+  width: 15px;
+  height: 15px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.atletas-busca input {
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: "Nexa", Arial, sans-serif;
+  font-size: 13px;
+  width: 100%;
+}
+
+.atletas-busca input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+
+/*  Grade que ficam os atletas */
+
+.atletas-grade {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 8px;
+   align-content: start
+}
+
+.atleta-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px 14px;
+  gap: 10px;
+}
+
+.atleta-foto {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.atleta-nome {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.btn-detalhes {
+  background: rgba(45,127,255,0.12);
+  border: 1px solid rgba(45,127,255,0.3);
+  border-radius: 8px;
+  color: #4d9fff;
+  font-family: "Nexa", Arial, sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  text-decoration: none;
+}
+
+.btn-detalhes:hover  { background: rgba(45,127,255,0.22); }
+.btn-detalhes:active { transform: scale(0.97); }
+
+.rodape {
+  background: #080f20;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  padding: 10px 24px;
+  flex-shrink: 0;
+}
+
+.botao-inicio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(45,127,255,0.15);
+  border: 1px solid rgba(45,127,255,0.3);
+  border-radius: 12px;
+  padding: 8px 16px;
+  color: #4d9fff;
+  cursor: pointer;
+  font-family: "Nexa", Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.botao-inicio:hover {
+  background: rgba(45,127,255,0.25);
+}
+
+.icone-casa {
+  width: 18px;
+  height: 18px;
+  stroke: #4d9fff;
+}
+
+/* tablet */
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .atletas-grade {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* mobile */
+
+@media (max-width: 600px) {
+
+  .atletas-titulo-wrapper {
+    padding: 16px 14px 0;
+  }
+
+  .atletas-titulo {
+    font-size: 1.5rem;
+  }
+
+  .atletas-conteudo {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .atletas-barra {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .btn-adicionar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .atletas-grade {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .atleta-foto {
+    width: 64px;
+    height: 64px;
+  }
+
+  .atleta-nome {
+    font-size: 12px;
+  }
+
+  .rodape {
+    padding: 8px 14px;
+  }
+}

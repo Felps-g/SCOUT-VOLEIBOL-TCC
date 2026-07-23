@@ -1,0 +1,373 @@
+/* titulo */
+
+.titulo-wrapper {
+  padding: 24px 24px 0;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.titulo-pagina {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+
+.conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+
+.jogo-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.jogo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.jogo-adversario {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.jogo-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jogo-data {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+}
+
+.jogo-placar {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.x {
+  color: rgba(255,255,255,0.3);
+  font-weight: 400;
+  margin: 0 2px;
+}
+
+.jogo-resultado {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.jogo-resultado--vitoria {
+  background: rgba(61,214,140,0.12);
+  border: 1px solid rgba(61,214,140,0.3);
+  color: #3dd68c;
+}
+
+.jogo-resultado--derrota {
+  background: rgba(232,39,58,0.12);
+  border: 1px solid rgba(232,39,58,0.3);
+  color: #e8273a;
+}
+
+.btn-excluir {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(232,39,58,0.1);
+  border: 1px solid rgba(232,39,58,0.3);
+  border-radius: 12px;
+  padding: 9px 18px;
+  color: #ff6b7a;
+  font-family: "Nexa", Arial, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-excluir:hover {
+  background: rgba(232,39,58,0.2);
+  border-color: rgba(232,39,58,0.5);
+}
+
+.btn-excluir:active { transform: scale(0.96); }
+
+.icone-lixo {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  object-fit: contain;
+}
+
+.grade-principal {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* cards */
+
+.card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.card-titulo {
+  padding: 14px 18px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+/* Gráfico */
+
+.card-grafico {
+  border-color: rgba(45,127,255,0.2);
+}
+
+.grafico-wrapper {
+  flex: 1;
+  padding: 16px 18px;
+  min-height: 0;
+  position: relative;
+}
+
+.grafico-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* atleta destaque */
+
+.card-destaque {
+  border-color: rgba(255,200,50,0.2);
+}
+
+.card-destaque .card-titulo {
+  color: rgba(255,200,50,0.6);
+}
+
+.destaque-conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+}
+
+.destaque-foto {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,200,50,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.destaque-foto svg {
+  width: 36px;
+  height: 36px;
+}
+
+.destaque-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.destaque-nome {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.destaque-posicao {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,200,50,0.7);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.destaque-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.destaque-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 8px;
+}
+
+.destaque-stat-valor {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.destaque-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+
+.destaque-stat-divisor {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+/* rodapé */
+
+.rodape {
+  background: #080f20;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  padding: 10px 24px;
+  flex-shrink: 0;
+}
+
+.botao-voltar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(45,127,255,0.15);
+  border: 1px solid rgba(45,127,255,0.3);
+  border-radius: 12px;
+  padding: 8px 16px;
+  color: #4d9fff;
+  cursor: pointer;
+  font-family: "Nexa", Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.botao-voltar:hover { background: rgba(45,127,255,0.25); }
+
+.icone-voltar{
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  stroke: #4d9fff;
+}
+
+/* tablet */
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .grade-principal {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* mobile */
+
+@media (max-width: 600px) {
+
+  .titulo-wrapper { padding: 12px 14px 0; }
+  .titulo-pagina { font-size: 1.3rem; letter-spacing: 3px; }
+
+  .conteudo {
+    padding: 12px 14px;
+    gap: 10px;
+    overflow-y: auto;
+  }
+
+  .jogo-topo {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .jogo-adversario { font-size: 1rem; }
+
+  .btn-excluir {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .grade-principal {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    flex: unset;
+  }
+
+  .card-grafico {
+    min-height: 240px;
+  }
+
+  .grafico-wrapper {
+    padding: 12px;
+    min-height: 200px;
+  }
+
+  .destaque-foto {
+    width: 64px;
+    height: 64px;
+  }
+
+  .destaque-foto svg { width: 28px; height: 28px; }
+
+  .rodape { padding: 8px 14px; }
+}

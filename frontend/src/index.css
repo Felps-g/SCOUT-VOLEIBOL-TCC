@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════
+   GLOBAL BASE — Scout Live
+   Centraliza fontes e reset para React
+═══════════════════════════════════════ */
+
+@font-face {
+  font-family: 'Nexa';
+  src: url('./assets/Nexa-ExtraLight.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Nexa';
+  src: url('./assets/Nexa-Heavy.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: #050d1f;
+  color: #fff;
+  font-family: 'Nexa', Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1a5dc8; border-radius: 2px; }
+
+/* Wrapper para páginas que antes dependiam de body { display: flex; flex-direction: column } */
+.pagina-app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}

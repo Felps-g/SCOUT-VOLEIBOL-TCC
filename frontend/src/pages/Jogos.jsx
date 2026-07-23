@@ -1,0 +1,151 @@
+import { useState, useEffect } from 'react';
+import '../../css/jogos.css';
+import lupaImg from '../assets/IMG/lupa.png';
+import detalheImg from '../assets/IMG/detalhe.png';
+import casaImg from '../assets/IMG/casa.png';
+import { apiRequest } from '../services/api.js';
+import { getTimeSelecionado, listarTimes } from '../services/time.js';
+
+function formatarData(isoDate) {
+  if (!isoDate) return '—';
+  const [ano, mes, dia] = isoDate.split('T')[0].split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+
+export default function Jogos() {
+  const [filtroAtivo, setFiltroAtivo] = useState('todos');
+  const [busca, setBusca] = useState('');
+
+  const [jogos, setJogos] = useState([]);
+  const [nomesTimes, setNomesTimes] = useState({});
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+
+  async function carregar() {
+    setCarregando(true);
+    setErro('');
+    try {
+      const [resJogos, times] = await Promise.all([
+        apiRequest('/matches'),
+        listarTimes()
+      ]);
+
+      const mapaNomes = {};
+      (times || []).forEach(t => { mapaNomes[t.id] = t.name; });
+
+      setNomesTimes(mapaNomes);
+      setJogos(resJogos?.jogos || []);
+    } catch (err) {
+      setErro(err.message || 'Erro ao carregar jogos');
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => { carregar(); }, []);
+
+  const jogosComNome = jogos.map(jogo => ({
+    ...jogo,
+    adversarioNome: nomesTimes[jogo.time_adversario_id] || 'Adversário',
+  }));
+
+  // FILTRAR JOGOS
+  // Combina o filtro de resultado com o texto digitado na busca
+  const jogosFiltrados = jogosComNome.filter(jogo => {
+    const passaFiltro = filtroAtivo === 'todos' || jogo.resultado_final === filtroAtivo;
+    const passaBusca  = jogo.adversarioNome.toLowerCase().includes(busca.toLowerCase());
+    return passaFiltro && passaBusca;
+  });
+
+  return (
+    <div className="aplicativo">
+
+      <header className="cabecalho">
+        <div className="cabecalho-espaco"></div>
+        <h1 className="logo">JOGOS</h1>
+        <div className="cabecalho-espaco"></div>
+      </header>
+
+      <div className="filtros">
+
+        {/* FILTROS DE RESULTADO (chips: Todos, Vitória, Derrota) */}
+        <div className="filtro-chips">
+          {[
+            { valor: 'todos',   label: 'Todos' },
+            { valor: 'vitoria', label: 'Vitória' },
+            { valor: 'derrota', label: 'Derrota' },
+          ].map(({ valor, label }) => (
+            <button
+              key={valor}
+              className={`chip${filtroAtivo === valor ? ' chip--ativo' : ''}`}
+              data-filtro={valor}
+              onClick={() => setFiltroAtivo(valor)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* BUSCA POR ADVERSÁRIO */}
+        <div className="filtro-busca">
+          <img src={lupaImg} className="icone-busca" />
+          <input
+            type="text"
+            placeholder="Buscar..."
+            className="input-busca"
+            id="inputBusca"
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
+          />
+        </div>
+
+      </div>
+
+      <div className="lista-jogos" id="listaJogos">
+
+        <div className="tabela-cabecalho">
+          <span>Data</span>
+          <span>Adversário</span>
+          <span>Placar</span>
+          <span>Resultado</span>
+          <span></span>
+        </div>
+
+        {carregando && <p style={{ color: '#fff', opacity: 0.7, padding: '0 16px' }}>Carregando jogos…</p>}
+        {erro && <p style={{ color: '#ff6b7a', padding: '0 16px' }}>{erro}</p>}
+        {!carregando && !erro && jogosFiltrados.length === 0 && (
+          <p style={{ color: '#fff', opacity: 0.7, padding: '0 16px' }}>Nenhum jogo salvo ainda.</p>
+        )}
+
+        {jogosFiltrados.map(jogo => (
+          <div className="jogo-item" data-resultado={jogo.resultado_final} key={jogo.id}>
+            <span className="jogo-data jogo-data--coluna">{formatarData(jogo.data_jogo)}</span>
+            <span className="jogo-adversario">
+              {jogo.adversarioNome}
+              <span className="jogo-data jogo-data--inline">{formatarData(jogo.data_jogo)}</span>
+              {jogo.local && <span className="jogo-local">{jogo.local}</span>}
+            </span>
+            <span className="jogo-placar">
+              {jogo.home_score ?? 0}<span className="x">×</span>{jogo.away_score ?? 0}
+            </span>
+            <span className={`jogo-resultado jogo-resultado--${jogo.resultado_final}`}>
+              {jogo.resultado_final === 'vitoria' ? 'Vitória' : jogo.resultado_final === 'derrota' ? 'Derrota' : '—'}
+            </span>
+            <a href={`#/detalhe-jogo?id=${jogo.id}`} className="botao-detalhes">
+              <img src={detalheImg} className="icone-detalhe" />
+            </a>
+          </div>
+        ))}
+
+      </div>
+
+      <nav className="barra-inferior">
+        <a href="#" className="botao-inicio">
+          <img src={casaImg} className="icone-casa" />
+          Início
+        </a>
+      </nav>
+
+    </div>
+  );
+}

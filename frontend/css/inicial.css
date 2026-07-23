@@ -1,0 +1,505 @@
+.aplicativo {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.aplicativo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+/* ════════════════════════════════
+   CABEÇALHO
+════════════════════════════════ */
+
+.cabecalho {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  gap: 12px;
+  margin-top: 1vh;
+  flex-shrink: 0;
+}
+
+.logo-equipe {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logo-equipe-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.logo {
+  font-family: "nexa", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  flex: 1;
+  text-align: center;
+  margin-left: 30px;
+  color: #ffffff;
+}
+
+.cabecalho-direita {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.usuario-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 6px 12px 6px 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.usuario-chip:hover { background: rgba(255,255,255,0.1); }
+
+.usuario-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #061a3c, #010414);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.icone-usuario {
+  width: 18px;
+  height: 18px;
+}
+
+.usuario-avatar-letra {
+  color: #e8273a;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.usuario-nome {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+
+/* ════════════════════════════════
+   GRADE DE NAVEGAÇÃO
+════════════════════════════════ */
+
+.grade-navegacao {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 20px 16px 32px;
+  flex: 1;
+  align-content: center;
+}
+
+.botao-nav {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 28px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  animation: surgir 0.5s ease both;
+}
+
+.botao-nav:nth-child(1) { animation-delay: 0.05s; }
+.botao-nav:nth-child(2) { animation-delay: 0.10s; }
+.botao-nav:nth-child(3) { animation-delay: 0.15s; }
+.botao-nav:nth-child(4) { animation-delay: 0.20s; }
+
+@keyframes surgir {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.botao-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(45,127,255,0.12) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.botao-nav:hover {
+  transform: translateY(-3px);
+  border-color: rgba(45,127,255,0.5);
+  background: rgba(45,127,255,0.08);
+}
+.botao-nav:hover::before { opacity: 1; }
+.botao-nav:active { transform: scale(0.97); }
+
+.botao-nav::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(45,127,255,0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.botao-nav:hover::after { opacity: 1; }
+
+.icone-nav {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.icone-nav svg { width: 28px; height: 28px; }
+.icone-nav img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.botao-nav--ao-vivo .icone-nav { background: rgba(232,39,58,0.15);  border: 1px solid rgba(232,39,58,0.3); }
+.botao-nav--jogos   .icone-nav { background: rgba(45,127,255,0.12); border: 1px solid rgba(45,127,255,0.3); }
+.botao-nav--atletas .icone-nav { background: rgba(45,127,255,0.12); border: 1px solid rgba(45,127,255,0.3); }
+.botao-nav--perfil  .icone-nav { background: rgba(77,159,255,0.10); border: 1px solid rgba(77,159,255,0.25); }
+
+.botao-nav--ao-vivo:hover { border-color: rgba(232,39,58,0.5) !important; }
+.botao-nav--ao-vivo:hover::before {
+  background: radial-gradient(ellipse at 50% 0%, rgba(232,39,58,0.1) 0%, transparent 70%) !important;
+}
+
+.indicador-ao-vivo {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e8273a;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #050d1f;
+  animation: pulsar-vermelho 1.8s ease-in-out infinite;
+}
+
+@keyframes pulsar-vermelho {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(232,39,58,0.6); }
+  50%       { box-shadow: 0 0 0 5px rgba(232,39,58,0);   }
+}
+
+.rotulo-nav {
+  font-family: "nexa", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* ════════════════════════════════
+   TABLET  768px+
+════════════════════════════════ */
+
+@media (min-width: 768px) {
+
+  .cabecalho {
+    padding: 20px 40px 16px;
+  }
+
+  .logo-equipe-img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo {
+    font-size: 32px;
+  }
+
+  .usuario-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .grade-navegacao {
+    grid-template-columns: repeat(4, 1fr);
+    padding: 16px 40px 24px;
+    gap: 16px;
+    align-content: center;
+  }
+
+  .botao-nav {
+    padding: 24px 16px 20px;
+    gap: 14px;
+    aspect-ratio: 3 / 4;
+  }
+
+  .icone-nav {
+    width: 60px;
+    height: 60px;
+  }
+
+  .icone-nav svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .rotulo-nav {
+    font-size: 15px;
+  }
+}
+
+
+/* ════════════════════════════════
+   DESKTOP  1200px+
+════════════════════════════════ */
+
+@media (min-width: 1200px) {
+
+  .cabecalho {
+    padding: 16px 80px;
+  }
+
+  .logo-equipe-img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo {
+    font-size: 32px;
+    letter-spacing: 5px;
+  }
+
+  .usuario-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .usuario-nome {
+    font-size: 14px;
+  }
+
+  .usuario-chip {
+    padding: 7px 14px 7px 7px;
+  }
+
+  .grade-navegacao {
+    padding: 20px 80px 24px;
+    gap: 20px;
+    flex: 1;
+    align-content: center;
+  }
+
+  .botao-nav {
+    padding: 24px 20px;
+    gap: 14px;
+    border-radius: 20px;
+    aspect-ratio: 3 / 4;
+  }
+
+  .icone-nav {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+
+  .icone-nav svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .rotulo-nav {
+    font-size: 16px;
+    letter-spacing: 1.5px;
+  }
+
+  .indicador-ao-vivo {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+
+/* ════════════════════════════════
+   TELA GRANDE  1600px+
+════════════════════════════════ */
+
+@media (min-width: 1600px) {
+
+  .cabecalho {
+    padding: 18px 120px;
+  }
+
+  .logo {
+    font-size: 38px;
+  }
+
+  .grade-navegacao {
+    padding: 20px 120px 28px;
+    gap: 24px;
+    align-content: center;
+  }
+
+  .botao-nav {
+    padding: 28px 24px;
+  }
+
+  .icone-nav {
+    width: 72px;
+    height: 72px;
+  }
+
+  .icone-nav svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .rotulo-nav {
+    font-size: 17px;
+  }
+}
+
+
+/* ════════════════════════════════
+   MOBILE  ≤ 767px
+════════════════════════════════ */
+
+@media (max-width: 767px) {
+
+  .aplicativo {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* — cabeçalho fixo no topo — */
+  .cabecalho {
+    padding: 16px 16px;
+    gap: 8px;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .logo-equipe-img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo {
+    font-size: 16px;
+    letter-spacing: 2px;
+    margin-left: 0;
+  }
+
+  /* chip vira só o avatar (círculo) */
+  .usuario-chip {
+    padding: 5px;
+    border-radius: 50%;
+    gap: 0;
+  }
+
+  /* esconde o texto "Entrar" no mobile */
+  .usuario-nome {
+    display: none;
+  }
+
+  .usuario-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .icone-usuario {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* — grade ocupa o resto da tela sem rolar — */
+  .grade-navegacao {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+    padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 14px);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    align-content: stretch;
+  }
+
+  .botao-nav {
+    aspect-ratio: unset;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border-radius: 18px;
+    gap: 10px;
+    min-height: 0;
+    min-width: 0;
+    align-self: stretch;
+    justify-self: stretch;
+  }
+
+  .icone-nav {
+    width: clamp(40px, 12vw, 56px);
+    height: clamp(40px, 12vw, 56px);
+    border-radius: 13px;
+  }
+
+  .icone-nav svg,
+  .icone-nav img {
+    width: clamp(20px, 6vw, 28px);
+    height: clamp(20px, 6vw, 28px);
+  }
+
+  .rotulo-nav {
+    font-size: clamp(10px, 2.8vw, 13px);
+    letter-spacing: 1px;
+  }
+
+  .indicador-ao-vivo {
+    width: 10px;
+    height: 10px;
+  }
+}

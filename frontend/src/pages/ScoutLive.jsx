@@ -1,0 +1,621 @@
+import { useState, useEffect, useMemo } from 'react';
+import '../../css/scoutlive.css';
+import { getTimeSelecionado, listarJogadores } from '../services/time.js';
+import SeletorTime from '../components/SeletorTime.jsx';
+
+/* ── ÍCONES SVG INLINE ─────────────────────────────────── */
+
+const IcSave = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+    <polyline points="17 21 17 13 7 13 7 21"/>
+    <polyline points="7 3 7 8 15 8"/>
+  </svg>
+);
+
+const IcSwap = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="17 1 21 5 17 9"/>
+    <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+    <polyline points="7 23 3 19 7 15"/>
+    <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+  </svg>
+);
+
+const IcCheck = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
+const IcX = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/>
+    <line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
+
+const IcHome = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </svg>
+);
+
+/* ── REGRAS DE POSIÇÃO / FUNDAMENTOS ───────────────────── */
+
+// ordem de exibição dos botões de posição na escalação
+const POSICOES = ['Levantador', 'Oposto', 'Ponteiro', 'Central', 'Libero'];
+
+// quantos titulares de cada posição uma escalação válida precisa ter
+const POSICOES_REQUERIDAS = { Levantador: 1, Oposto: 1, Ponteiro: 2, Central: 2, Libero: 1 };
+
+const TOTAL_TITULARES = Object.values(POSICOES_REQUERIDAS).reduce((a, b) => a + b, 0); // 7
+
+// nome de exibição (Líbero tem acento, mas a chave interna fica sem para simplificar)
+const NOME_POSICAO = { Levantador: 'Levantador', Oposto: 'Oposto', Ponteiro: 'Ponteiro', Central: 'Central', Libero: 'Líbero' };
+
+// fundamentos que geram ponto, por posição
+const FUNDAMENTOS_PONTUAM = {
+  Levantador: ['Saque', 'Bloqueio'],
+  Ponteiro:   ['Ataque', 'Saque', 'Bloqueio'],
+  Oposto:     ['Ataque', 'Saque', 'Bloqueio'],
+  Central:    ['Ataque', 'Saque', 'Bloqueio'],
+  Libero:     [],
+};
+
+// fundamentos que não geram ponto, por posição
+const FUNDAMENTOS_NAO_PONTUAM = {
+  Levantador: ['Levantamento'],
+  Libero:     ['Recepção', 'Defesa'],
+  Ponteiro:   ['Recepção'],
+  Oposto:     ['Defesa'],
+  Central:    ['Defesa'],
+};
+
+/* ── HELPERS ────────────────────────────────────────────── */
+
+function cadastroDoJogador(j) {
+  return j?.position || j?.posicao || j?.cadastro || '—';
+}
+
+/* ── COMPONENTE: CARTÃO DE JOGADOR (tela principal) ────── */
+
+function CartaoJogador({ titular, acertos, erros, onClick }) {
+  return (
+    <button type="button" className="cartao-jogador" onClick={onClick}>
+      <div className="cj-topo">
+        <span className="cj-numero">{titular.numero}</span>
+        <div className="cj-nomes">
+          <span className="cj-nome">{titular.nome}</span>
+          <span className="cj-posicao">{NOME_POSICAO[titular.posicao]}</span>
+        </div>
+      </div>
+      <div className="cj-contagem">
+        <span className="cj-pill cj-pill--acerto"><IcCheck /> {acertos}</span>
+        <span className="cj-pill cj-pill--erro"><IcX /> {erros}</span>
+      </div>
+    </button>
+  );
+}
+
+/* ── COMPONENTE PRINCIPAL ───────────────────────────────── */
+
+export default function ScoutLive() {
+  const [timeAtual, setTimeAtual] = useState(getTimeSelecionado());
+  const [jogadores, setJogadores] = useState([]);
+  const [carregandoJogadores, setCarregandoJogadores] = useState(false);
+  const [erroJogadores, setErroJogadores] = useState('');
+
+  /* ── ESCALAÇÃO ── */
+  const [escalacaoAberta, setEscalacaoAberta]     = useState(true);
+  const [selecoes, setSelecoes]                   = useState({}); // { jogadorId: 'Ponteiro' }
+  const [titulares, setTitulares]                 = useState([]); // [{id,nome,numero,posicao}]
+
+  /* ── SCOUT ── */
+  const [setAtual, setSetAtual] = useState(1);
+  const [dados, setDados]       = useState({}); // dados[jogadorId][set] = { acerto, erro, eventos:[] }
+  const [jogadorAberto, setJogadorAberto] = useState(null); // id do titular com modal de fundamentos aberto
+
+  /* ── TROCA ── */
+  const [trocaAberta, setTrocaAberta] = useState(false);
+  const [trocaSai, setTrocaSai]       = useState(null);
+  const [trocaEntra, setTrocaEntra]   = useState(null);
+
+  /* ── SALVAR SCOUT ── */
+  const [salvarAberto, setSalvarAberto] = useState(false);
+  const [mData, setMData]               = useState('');
+  const [mAdv, setMAdv]                 = useState('');
+  const [mPlacarNos, setMPlacarNos]     = useState('');
+  const [mPlacarAdv, setMPlacarAdv]     = useState('');
+  const [errosForm, setErrosForm]       = useState([]);
+  const [salvando, setSalvando]         = useState(false);
+
+  const [avisoVisivel, setAvisoVisivel] = useState(false);
+
+  /* busca os jogadores reais do time selecionado */
+  async function carregarJogadores(time) {
+    if (!time) {
+      setJogadores([]);
+      return;
+    }
+    setCarregandoJogadores(true);
+    setErroJogadores('');
+    try {
+      const lista = await listarJogadores(time.id);
+      setJogadores(lista || []);
+    } catch (err) {
+      setErroJogadores(err.message || 'Erro ao buscar atletas do time');
+    } finally {
+      setCarregandoJogadores(false);
+    }
+  }
+
+  useEffect(() => {
+    if (timeAtual) carregarJogadores(timeAtual);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleTimeChange(time) {
+    setTimeAtual(time);
+    setSelecoes({});
+    carregarJogadores(time);
+  }
+
+  // número de camisa: usa o cadastro real se existir, senão a ordem no elenco
+  const numerosMap = useMemo(() => {
+    const mapa = {};
+    jogadores.forEach((j, i) => { mapa[j.id] = j.number ?? j.numero ?? j.camisa ?? (i + 1); });
+    return mapa;
+  }, [jogadores]);
+
+  /* ── ESCALAÇÃO: seleção de posição por jogador ── */
+  const contagemPorPosicao = useMemo(() => {
+    const c = { Levantador: 0, Oposto: 0, Ponteiro: 0, Central: 0, Libero: 0 };
+    Object.values(selecoes).forEach(pos => { c[pos] = (c[pos] || 0) + 1; });
+    return c;
+  }, [selecoes]);
+
+  const totalSelecionados = Object.keys(selecoes).length;
+  const podeIniciar = totalSelecionados === TOTAL_TITULARES;
+
+  function togglePosicao(jogadorId, posicao) {
+    setSelecoes(prev => {
+      const atual = { ...prev };
+      if (atual[jogadorId] === posicao) {
+        delete atual[jogadorId];
+        return atual;
+      }
+      const jaTemNaPosicao = Object.entries(atual).filter(
+        ([id, p]) => p === posicao && id !== jogadorId
+      ).length;
+      if (jaTemNaPosicao >= POSICOES_REQUERIDAS[posicao]) return prev; // vaga cheia
+      atual[jogadorId] = posicao;
+      return atual;
+    });
+  }
+
+  function iniciarScout() {
+    if (!podeIniciar) return;
+    const lista = Object.entries(selecoes).map(([id, posicao]) => {
+      const j = jogadores.find(x => x.id === id);
+      return { id, nome: j?.name || j?.nome || 'Atleta', numero: numerosMap[id], posicao };
+    }).sort((a, b) => a.numero - b.numero);
+
+    setTitulares(lista);
+    setEscalacaoAberta(false);
+  }
+
+  /* ── BANCO (reservas disponíveis para troca) ── */
+  const banco = useMemo(() => {
+    const idsEmQuadra = new Set(titulares.map(t => t.id));
+    return jogadores
+      .filter(j => !idsEmQuadra.has(j.id))
+      .map(j => ({ id: j.id, nome: j.name || j.nome || 'Atleta', numero: numerosMap[j.id] }))
+      .sort((a, b) => a.numero - b.numero);
+  }, [jogadores, titulares, numerosMap]);
+
+  /* ── MARCAÇÃO DE FUNDAMENTOS ── */
+  function marcar(jogadorId, fundamento, tipo) {
+    setDados(prev => {
+      const d = { ...prev };
+      d[jogadorId] = { ...(d[jogadorId] || {}) };
+      const atualDoSet = d[jogadorId][setAtual] || { acerto: 0, erro: 0, eventos: [] };
+      d[jogadorId][setAtual] = {
+        acerto: atualDoSet.acerto + (tipo === 'acerto' ? 1 : 0),
+        erro: atualDoSet.erro + (tipo === 'erro' ? 1 : 0),
+        eventos: [...atualDoSet.eventos, { fundamento, tipo }],
+      };
+      return d;
+    });
+    setJogadorAberto(null);
+  }
+
+  const getContagem = (jogadorId, tipo) => dados?.[jogadorId]?.[setAtual]?.[tipo] ?? 0;
+
+  const titularAberto = titulares.find(t => t.id === jogadorAberto) || null;
+
+  /* ── TROCA ── */
+  function abrirTroca() {
+    setTrocaSai(null);
+    setTrocaEntra(null);
+    setTrocaAberta(true);
+  }
+
+  function confirmarTroca() {
+    if (!trocaSai || !trocaEntra) return;
+    setTitulares(prev => {
+      const sai = prev.find(t => t.id === trocaSai);
+      const entrou = jogadores.find(j => j.id === trocaEntra);
+      const novo = {
+        id: entrou.id,
+        nome: entrou.name || entrou.nome || 'Atleta',
+        numero: numerosMap[entrou.id],
+        posicao: sai.posicao,
+      };
+      return prev.map(t => (t.id === trocaSai ? novo : t)).sort((a, b) => a.numero - b.numero);
+    });
+    setTrocaAberta(false);
+    setTrocaSai(null);
+    setTrocaEntra(null);
+  }
+
+  /* ── SALVAR SCOUT ── */
+  function abrirSalvar() {
+    setMData(new Date().toISOString().split('T')[0]);
+    setSalvarAberto(true);
+  }
+
+  function fecharSalvar() {
+    setSalvarAberto(false);
+    setMAdv(''); setMPlacarNos(''); setMPlacarAdv(''); setErrosForm([]);
+  }
+
+  async function confirmarSalvar() {
+    const e = [];
+    if (!mData) e.push('data');
+    if (!mAdv.trim()) e.push('adv');
+    if (mPlacarNos === '') e.push('placarNos');
+    if (mPlacarAdv === '') e.push('placarAdv');
+    if (e.length) { setErrosForm(e); setTimeout(() => setErrosForm([]), 2000); return; }
+
+    try {
+      setSalvando(true);
+
+      // TODO(backend): enviar { time_id, data: mData, adversario: mAdv,
+      // placar: `${mPlacarNos}x${mPlacarAdv}`, titulares, dados } para a API
+      // quando os endpoints estiverem prontos.
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      fecharSalvar();
+      setAvisoVisivel(true);
+      setTimeout(() => setAvisoVisivel(false), 2500);
+
+      // encerra a partida e volta para a tela de escalação
+      setTitulares([]);
+      setSelecoes({});
+      setDados({});
+      setSetAtual(1);
+      setEscalacaoAberta(true);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  const ebForm = (id) => errosForm.includes(id) ? { borderColor: 'rgba(232,39,58,0.75)' } : {};
+
+  /* ── RENDER ─────────────────────────────────────────── */
+  return (
+    <div className="app">
+
+      {/* ── CABEÇALHO ── */}
+      <header className="header">
+        <div className="titulo">
+          <span className="t-scout">SCOUT</span>
+          <span className="t-live">LIVE</span>
+        </div>
+      </header>
+
+      {/* ══════════════════════ ESCALAÇÃO ══════════════════════ */}
+      {escalacaoAberta && (
+        <div className="escalacao-overlay">
+          <div className="escalacao-content">
+
+            <h1 className="escalacao-titulo">Escalação da partida</h1>
+            <p className="escalacao-sub">
+              Escolha os 7 titulares e a posição de cada um <b>nesse jogo</b>.
+            </p>
+
+            <div style={{ padding: '0 0 6px' }}>
+              <SeletorTime onChange={handleTimeChange} />
+            </div>
+
+            <div className="escalacao-contador">
+              {totalSelecionados}/{TOTAL_TITULARES} titulares selecionados
+            </div>
+
+            <div className="escalacao-lista">
+              {carregandoJogadores && <p className="escalacao-msg">Carregando atletas…</p>}
+              {erroJogadores && <p className="escalacao-msg escalacao-msg--erro">{erroJogadores}</p>}
+              {!carregandoJogadores && !erroJogadores && jogadores.length === 0 && (
+                <p className="escalacao-msg">Selecione (ou crie) um time com atletas cadastrados.</p>
+              )}
+
+              {jogadores.map(j => {
+                const posicaoEscolhida = selecoes[j.id];
+                return (
+                  <div key={j.id} className={`escalacao-jogador${posicaoEscolhida ? ' selecionado' : ''}`}>
+                    <div className="ej-info">
+                      <span className={`ej-radio${posicaoEscolhida ? ' marcado' : ''}`} />
+                      <div className="ej-textos">
+                        <span className="ej-nome">{j.name || j.nome}</span>
+                        <span className="ej-cadastro">cadastro: {cadastroDoJogador(j)}</span>
+                      </div>
+                    </div>
+                    <div className="ej-posicoes">
+                      {POSICOES.map(pos => {
+                        const ativa = posicaoEscolhida === pos;
+                        const cheia = !ativa && contagemPorPosicao[pos] >= POSICOES_REQUERIDAS[pos];
+                        return (
+                          <button
+                            key={pos}
+                            type="button"
+                            className={`ej-btn-pos${ativa ? ' ativo' : ''}`}
+                            disabled={cheia}
+                            onClick={() => togglePosicao(j.id, pos)}
+                          >
+                            {NOME_POSICAO[pos]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button type="button" className="btn-iniciar-scout" disabled={!podeIniciar} onClick={iniciarScout}>
+              Iniciar Scout
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════ TELA DE SCOUT ══════════════════════ */}
+      {!escalacaoAberta && (
+        <main className="main">
+          <div className="scout-tabs">
+            <span className="tabs-label">SET</span>
+            {[1, 2, 3, 4, 5].map(n => (
+              <button
+                key={n}
+                type="button"
+                className={`tab-set${n === setAtual ? ' ativo' : ''}`}
+                onClick={() => setSetAtual(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+
+          <div className="scout-acoes-topo">
+            <button type="button" className="btn-trocar" onClick={abrirTroca}>
+              <IcSwap /> Trocar
+            </button>
+            <button type="button" className="btn-salvar-scout" onClick={abrirSalvar}>
+              <IcSave /> Salvar scout
+            </button>
+          </div>
+
+          <div className="legenda">
+            <span className="legenda-item"><i className="ponto ponto--verde" /> pontua</span>
+            <span className="legenda-item"><i className="ponto ponto--cinza" /> não pontua</span>
+          </div>
+
+          <div className="toque-label">Toque no jogador para marcar</div>
+
+          <div className="grade-jogadores">
+            {titulares.map(t => (
+              <CartaoJogador
+                key={t.id}
+                titular={t}
+                acertos={getContagem(t.id, 'acerto')}
+                erros={getContagem(t.id, 'erro')}
+                onClick={() => setJogadorAberto(t.id)}
+              />
+            ))}
+          </div>
+        </main>
+      )}
+
+      {/* ── RODAPÉ ── */}
+      <footer className="footer">
+        <a href="#" className="btn-inicio">
+          <IcHome />
+          <span>Início</span>
+        </a>
+      </footer>
+
+      {/* ── AVISO ── */}
+      <div className={`aviso${avisoVisivel ? ' vis' : ''}`}>Scout salvo com sucesso!</div>
+
+      {/* ══════════════════ MODAL: FUNDAMENTOS DO JOGADOR ══════════════════ */}
+      <div className={`overlay${titularAberto ? ' open' : ''}`}
+           onClick={e => e.target === e.currentTarget && setJogadorAberto(null)}>
+        {titularAberto && (
+          <div className="modal modal-fundamentos">
+            <div className="modal-handle" />
+            <div className="mf-header">
+              <div>
+                <div className="mf-nome">{titularAberto.nome}</div>
+                <div className="mf-posicao">{NOME_POSICAO[titularAberto.posicao]}</div>
+              </div>
+              <button type="button" className="modal-close" onClick={() => setJogadorAberto(null)}>
+                <IcX />
+              </button>
+            </div>
+
+            {FUNDAMENTOS_PONTUAM[titularAberto.posicao]?.length > 0 && (
+              <>
+                <div className="secao-titulo secao-titulo--verde">Fundamentos que pontuam</div>
+                <div className="lista-fundamentos">
+                  {FUNDAMENTOS_PONTUAM[titularAberto.posicao].map(f => (
+                    <div key={f} className="fundamento-card">
+                      <span className="fundamento-nome">{f}</span>
+                      <div className="fundamento-botoes">
+                        <button type="button" className="fbtn facerto"
+                                onClick={() => marcar(titularAberto.id, f, 'acerto')}>
+                          <IcCheck /> Acerto
+                        </button>
+                        <button type="button" className="fbtn ferro"
+                                onClick={() => marcar(titularAberto.id, f, 'erro')}>
+                          <IcX /> Erro
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="secao-titulo secao-titulo--cinza">Fundamentos que não pontuam</div>
+            <div className="lista-fundamentos">
+              {FUNDAMENTOS_NAO_PONTUAM[titularAberto.posicao]?.map(f => (
+                <div key={f} className="fundamento-card">
+                  <span className="fundamento-nome">{f}</span>
+                  <div className="fundamento-botoes">
+                    <button type="button" className="fbtn facerto"
+                            onClick={() => marcar(titularAberto.id, f, 'acerto')}>
+                      <IcCheck /> Acerto
+                    </button>
+                    <button type="button" className="fbtn ferro"
+                            onClick={() => marcar(titularAberto.id, f, 'erro')}>
+                      <IcX /> Erro
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ══════════════════════ MODAL: TROCA ══════════════════════ */}
+      <div className={`overlay${trocaAberta ? ' open' : ''}`}
+           onClick={e => e.target === e.currentTarget && setTrocaAberta(false)}>
+        {trocaAberta && (
+          <div className="modal modal-troca">
+            <div className="modal-handle" />
+            <div className="mf-header">
+              <span className="modal-titulo-simples">Trocar jogador</span>
+              <button type="button" className="modal-close" onClick={() => setTrocaAberta(false)}>
+                <IcX />
+              </button>
+            </div>
+
+            <div className="secao-titulo secao-titulo--cinza">Quem sai</div>
+            <div className="lista-troca">
+              {titulares.map(t => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`troca-item${trocaSai === t.id ? ' sel' : ''}`}
+                  onClick={() => setTrocaSai(t.id)}
+                >
+                  <span className="troca-nome">{t.nome} nº {t.numero}</span>
+                  <span className="troca-pos">{NOME_POSICAO[t.posicao]}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="secao-titulo secao-titulo--cinza">Quem entra</div>
+            <div className="lista-troca">
+              {banco.length === 0 && <p className="escalacao-msg">Nenhum reserva disponível.</p>}
+              {banco.map(b => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className={`troca-item${trocaEntra === b.id ? ' sel' : ''}`}
+                  onClick={() => setTrocaEntra(b.id)}
+                >
+                  <span className="troca-nome">{b.nome} nº {b.numero}</span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="btn-confirmar-troca"
+              disabled={!trocaSai || !trocaEntra}
+              onClick={confirmarTroca}
+            >
+              Confirmar troca
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ══════════════════════ MODAL: SALVAR SCOUT ══════════════════════ */}
+      <div className={`overlay${salvarAberto ? ' open' : ''}`}
+           onClick={e => e.target === e.currentTarget && fecharSalvar()}>
+        {salvarAberto && (
+          <div className="modal modal-salvar">
+            <div className="modal-handle" />
+            <div className="mf-header">
+              <span className="modal-titulo-simples">Salvar scout</span>
+              <button type="button" className="modal-close" onClick={fecharSalvar}>
+                <IcX />
+              </button>
+            </div>
+
+            <div className="mcampo">
+              <label className="mlabel">Seu time</label>
+              <div className="minput minput-somente-leitura">
+                {timeAtual?.name || 'Nenhum time selecionado'}
+              </div>
+            </div>
+
+            <div className="mcampo">
+              <label className="mlabel">Data do jogo</label>
+              <input className="minput" type="date" value={mData}
+                     onChange={e => setMData(e.target.value)} style={ebForm('data')} />
+            </div>
+
+            <div className="mcampo">
+              <label className="mlabel">Adversário</label>
+              <input className="minput" type="text" placeholder="Nome do time adversário"
+                     value={mAdv} onChange={e => setMAdv(e.target.value)} style={ebForm('adv')} />
+            </div>
+
+            <div className="mcampo">
+              <label className="mlabel">Placar final (sets)</label>
+              <div className="placar-row">
+                <input className="minput" type="number" min="0" max="5" placeholder="0"
+                       value={mPlacarNos} onChange={e => setMPlacarNos(e.target.value)}
+                       style={ebForm('placarNos')} />
+                <span className="placar-x">×</span>
+                <input className="minput" type="number" min="0" max="5" placeholder="0"
+                       value={mPlacarAdv} onChange={e => setMPlacarAdv(e.target.value)}
+                       style={ebForm('placarAdv')} />
+              </div>
+              <span className="placar-legenda">{timeAtual?.name || 'Seu time'} × Adversário</span>
+            </div>
+
+            <div className="modal-acoes">
+              <button type="button" className="mbtn-cancel" onClick={fecharSalvar}>Cancelar</button>
+              <button type="button" className="mbtn-ok" onClick={confirmarSalvar} disabled={salvando}>
+                {salvando ? 'Salvando…' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+    </div>
+  );
+}
