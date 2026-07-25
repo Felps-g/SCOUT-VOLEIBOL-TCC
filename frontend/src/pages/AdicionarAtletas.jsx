@@ -177,7 +177,7 @@ export default function AdicionarAtletas() {
         height: altura.trim(),
         // mantém a formatação exata que o técnico digitou (pontos, traço
         // etc.) em vez de guardar só os números
-        cpf: cpf.trim(),
+        cpf: cpf.replace(/\D/g, ''),
         rg: rg.trim() || undefined,
         age: idade.trim() || undefined,
         weight: peso.trim() || undefined,
