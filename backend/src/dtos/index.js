@@ -24,8 +24,8 @@ export class CreateJogoDTO {
 
   isValid() {
     return this.time_id && 
-           this.data_jogo && 
-           this.local;
+           this.time_adversario_id &&
+           this.data_jogo;
   }
 }
 

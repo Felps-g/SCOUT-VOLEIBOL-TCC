@@ -39,7 +39,7 @@ export const criarJogo = async (req, res) => {
     if (!dto.isValid()) {
       return res.status(400).json({
         mensagem: 'Dados inválidos',
-        campos_obrigatorios: ['time_id', 'time_adversario_id', 'data_jogo', 'local']
+        campos_obrigatorios: ['time_id', 'time_adversario_id', 'data_jogo']
       });
     }
 

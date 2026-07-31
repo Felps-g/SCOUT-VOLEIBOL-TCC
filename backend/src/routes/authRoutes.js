@@ -234,14 +234,20 @@ router.put('/profile', async (req, res) => {
 
     const { nome, telefone } = req.body;
 
-    const { data, error } = await supabase.auth.updateUser(
+    // supabase.auth.updateUser() atualiza a sessão ATUAL do client que a
+    // chama — mas este `supabase` (servidor) nunca fez login como esse
+    // usuário, então a chamada nunca teria efeito nenhum (passar o token
+    // como "headers" não é como esse método funciona). O jeito certo de
+    // atualizar QUALQUER usuário a partir do servidor é pelo admin API,
+    // usando o id do usuário já validado acima.
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
+      userData.user.id,
       {
-        data: {
+        user_metadata: {
           nome: nome || userData.user.user_metadata?.nome,
           telefone: telefone || userData.user.user_metadata?.telefone
         }
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
+      }
     );
 
     if (error) {
@@ -297,9 +303,13 @@ router.post('/trocar-senha', async (req, res) => {
       });
     }
 
-    const { error } = await supabase.auth.updateUser(
-      { password: senha_nova },
-      { headers: { Authorization: `Bearer ${token}` } }
+    // Mesmo caso do PUT /profile: o client do servidor não tem sessão
+    // desse usuário, então supabase.auth.updateUser() não teria efeito.
+    // updateUserById (admin) é o jeito certo de trocar a senha de um
+    // usuário específico a partir do servidor.
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(
+      userData.user.id,
+      { password: senha_nova }
     );
 
     if (error) {

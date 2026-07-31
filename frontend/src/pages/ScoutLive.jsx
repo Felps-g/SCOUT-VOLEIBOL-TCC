@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import '../../css/scoutlive.css';
-import { getTimeSelecionado, listarJogadores } from '../services/time.js';
+import { apiRequest } from '../services/api.js';
+import { getTimeSelecionado, listarJogadores, listarTimes, criarTime } from '../services/time.js';
 import SeletorTime from '../components/SeletorTime.jsx';
 
 /* ── ÍCONES SVG INLINE ─────────────────────────────────── */
@@ -276,6 +277,29 @@ export default function ScoutLive() {
     setMAdv(''); setMPlacarNos(''); setMPlacarAdv(''); setErrosForm([]);
   }
 
+  // mapeia o nome do fundamento (como aparece na tela) pro tipo_acao que a API espera
+  const TIPO_ACAO_POR_FUNDAMENTO = {
+    Saque: 'saque',
+    Recepção: 'recepcao',
+    Levantamento: 'levantamento',
+    Ataque: 'ataque',
+    Bloqueio: 'bloqueio',
+    Defesa: 'defesa',
+  };
+
+  // o adversário aqui é só um nome digitado, mas o banco exige um
+  // away_team_id real (uuid de um time cadastrado) — reaproveita um time
+  // já existente com esse nome ou cria um novo (mesma lógica usada antes
+  // desta tela ganhar a Escalação).
+  async function resolverTimeAdversario(nome) {
+    const nomeNormalizado = nome.trim().toLowerCase();
+    const times = await listarTimes();
+    const existente = times.find(t => (t.name || '').trim().toLowerCase() === nomeNormalizado);
+    if (existente) return existente.id;
+    const novo = await criarTime(nome.trim());
+    return novo.id;
+  }
+
   async function confirmarSalvar() {
     const e = [];
     if (!mData) e.push('data');
@@ -287,10 +311,78 @@ export default function ScoutLive() {
     try {
       setSalvando(true);
 
-      // TODO(backend): enviar { time_id, data: mData, adversario: mAdv,
-      // placar: `${mPlacarNos}x${mPlacarAdv}`, titulares, dados } para a API
-      // quando os endpoints estiverem prontos.
-      await new Promise(resolve => setTimeout(resolve, 400));
+      const teamId = timeAtual?.id;
+      if (!teamId) throw new Error('Selecione ou crie um time antes de salvar o scout.');
+
+      const awayTeamId = await resolverTimeAdversario(mAdv);
+
+      // cria o jogo (o backend já cria o Set 1 automaticamente)
+      const jogo = await apiRequest('/matches/novo', {
+        method: 'POST',
+        body: {
+          home_team_id: teamId,
+          away_team_id: awayTeamId,
+          match_date: mData
+        }
+      });
+      const matchId = jogo?.jogo?.id;
+      if (!matchId) throw new Error('Não foi possível criar o jogo.');
+
+      // descobre quais sets realmente têm ações marcadas (o técnico pode ter
+      // usado as abas Set 1-5 durante a partida) e cria os que faltarem —
+      // só o Set 1 já existe de fábrica
+      const numerosComDados = new Set([1]);
+      Object.values(dados).forEach(porSet => {
+        Object.keys(porSet).forEach(n => numerosComDados.add(Number(n)));
+      });
+
+      const setIdPorNumero = {};
+      const setAtualResp = await apiRequest(`/matches/${matchId}/sets/atual`);
+      setIdPorNumero[1] = setAtualResp?.set?.id;
+
+      for (const numero of numerosComDados) {
+        if (numero === 1) continue;
+        const resp = await apiRequest(`/matches/${matchId}/sets`, {
+          method: 'POST',
+          body: { numero_set: numero }
+        });
+        setIdPorNumero[numero] = resp?.set?.id;
+      }
+
+      // envia cada evento marcado como uma ação de scout
+      const promessas = [];
+      Object.entries(dados).forEach(([jogadorId, porSet]) => {
+        Object.entries(porSet).forEach(([numeroSet, info]) => {
+          const setId = setIdPorNumero[Number(numeroSet)];
+          if (!setId) return;
+
+          (info.eventos || []).forEach((evento, index) => {
+            promessas.push(apiRequest(`/matches/${matchId}/acoes`, {
+              method: 'POST',
+              body: {
+                jogador_id: jogadorId,
+                set_id: setId,
+                tipo_acao: TIPO_ACAO_POR_FUNDAMENTO[evento.fundamento] || 'ataque',
+                resultado: evento.tipo === 'acerto' ? 'ponto' : 'erro',
+                posicao_jogador: titulares.find(t => t.id === jogadorId)?.posicao || 'desconhecido',
+                descricao: evento.fundamento,
+                action_order: index + 1
+              }
+            }));
+          });
+        });
+      });
+
+      await Promise.all(promessas);
+
+      // grava o placar final e o resultado (vitória/derrota pelo placar de sets)
+      await apiRequest(`/matches/${matchId}/finalizar`, {
+        method: 'PUT',
+        body: {
+          resultado_final: Number(mPlacarNos) >= Number(mPlacarAdv) ? 'vitoria' : 'derrota',
+          placar_final: `${mPlacarNos}x${mPlacarAdv}`
+        }
+      });
 
       fecharSalvar();
       setAvisoVisivel(true);
@@ -302,6 +394,8 @@ export default function ScoutLive() {
       setDados({});
       setSetAtual(1);
       setEscalacaoAberta(true);
+    } catch (err) {
+      alert(err.message || 'Erro ao salvar o scout');
     } finally {
       setSalvando(false);
     }
