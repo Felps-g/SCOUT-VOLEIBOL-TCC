@@ -140,6 +140,7 @@ export class AcaoResponseDTO {
     this.tipo_acao = acao.action_type;
     this.resultado = acao.result;
     this.set_id = acao.set_id;
+    this.posicao_jogador = acao.player_position;
     this.timestamp = acao.action_timestamp;
     this.descricao = acao.description;
   }

@@ -46,7 +46,13 @@ export async function apiRequest(path, { method = 'GET', body, auth = true } = {
   }
 
   if (!response.ok) {
-    throw new Error(data.mensagem || data.erro || data.error || 'Erro na requisição');
+    // o backend às vezes manda a mensagem genérica em "erro"/"mensagem" e o
+    // motivo real (o que o Supabase respondeu) separado em "detalhes" —
+    // sem isso aqui, erros como "Invalid login credentials" ou
+    // "Email not confirmed" ficavam escondidos atrás de "Falha na autenticação"
+    const base = data.mensagem || data.erro || data.error || 'Erro na requisição';
+    const detalhe = data.detalhes && data.detalhes !== base ? data.detalhes : null;
+    throw new Error(detalhe ? `${base}: ${detalhe}` : base);
   }
 
   return data;
