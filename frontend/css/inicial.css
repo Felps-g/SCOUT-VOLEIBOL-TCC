@@ -26,9 +26,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  gap: 12px;
-  margin-top: 1vh;
+  padding: 28px 16px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
@@ -53,11 +52,6 @@
   letter-spacing: 3px;
   text-transform: uppercase;
   color: #ffffff;
-  /* fixo no centro do cabeçalho, independente da largura do logo da
-     equipe (esquerda) ou do chip do usuário (direita) — antes ele
-     ocupava o espaço "sobrando" entre os dois lados (flex: 1), então
-     mudava de lugar sempre que o chip da direita mudava de tamanho
-     (ex: com/sem nome do usuário) */
   position: absolute;
   left: 50%;
   top: 50%;
@@ -255,7 +249,7 @@
 @media (min-width: 768px) {
 
   .cabecalho {
-    padding: 20px 40px 16px;
+    padding: 28px 40px;
   }
 
   .logo-equipe-img {
@@ -309,7 +303,7 @@
 @media (min-width: 1200px) {
 
   .cabecalho {
-    padding: 16px 80px;
+    padding: 28px 80px;
   }
 
   .logo-equipe-img {
@@ -380,7 +374,7 @@
 @media (min-width: 1600px) {
 
   .cabecalho {
-    padding: 18px 120px;
+    padding: 28px 120px;
   }
 
   .logo {
@@ -426,9 +420,8 @@
 
   /* — cabeçalho fixo no topo — */
   .cabecalho {
-    padding: 16px 16px;
+    padding: 28px 16px;
     gap: 8px;
-    margin-top: 0;
     flex-shrink: 0;
   }
 

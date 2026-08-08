@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../../css/jogos.css';
 import lupaImg from '../assets/IMG/lupa.png';
-import detalheImg from '../assets/IMG/detalhe.png';
 import casaImg from '../assets/IMG/casa.png';
 import { apiRequest } from '../services/api.js';
 import { getTimeSelecionado, listarTimes } from '../services/time.js';
@@ -60,9 +59,9 @@ export default function Jogos() {
   return (
     <div className="aplicativo">
 
-      <header className="cabecalho">
+      <header className="cabecalho-jogos">
         <div className="cabecalho-espaco"></div>
-        <h1 className="logo">JOGOS</h1>
+        <h1 className="logo-jogos">JOGOS</h1>
         <div className="cabecalho-espaco"></div>
       </header>
 
@@ -108,7 +107,6 @@ export default function Jogos() {
           <span>Adversário</span>
           <span>Placar</span>
           <span>Resultado</span>
-          <span></span>
         </div>
 
         {carregando && <p style={{ color: '#fff', opacity: 0.7, padding: '0 16px' }}>Carregando jogos…</p>}
@@ -118,7 +116,12 @@ export default function Jogos() {
         )}
 
         {jogosFiltrados.map(jogo => (
-          <div className="jogo-item" data-resultado={jogo.resultado_final} key={jogo.id}>
+          <a
+            href={`#/detalhe-jogo?id=${jogo.id}`}
+            className="jogo-item"
+            data-resultado={jogo.resultado_final}
+            key={jogo.id}
+          >
             <span className="jogo-data jogo-data--coluna">{formatarData(jogo.data_jogo)}</span>
             <span className="jogo-adversario">
               {jogo.adversarioNome}
@@ -130,10 +133,7 @@ export default function Jogos() {
             <span className={`jogo-resultado jogo-resultado--${jogo.resultado_final}`}>
               {jogo.resultado_final === 'vitoria' ? 'Vitória' : jogo.resultado_final === 'derrota' ? 'Derrota' : '—'}
             </span>
-            <a href={`#/detalhe-jogo?id=${jogo.id}`} className="botao-detalhes">
-              <img src={detalheImg} className="icone-detalhe" />
-            </a>
-          </div>
+          </a>
         ))}
 
       </div>

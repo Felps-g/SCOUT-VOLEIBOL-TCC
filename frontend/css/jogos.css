@@ -17,27 +17,33 @@
 
 
 /* ════════════════════════════════
-   CABEÇALHO
+   CABEÇALHO — fixo no topo
 ════════════════════════════════ */
 
-.cabecalho {
+.cabecalho-jogos {
   position: relative;
-  z-index: 10;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 24px 16px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
   flex-shrink: 0;
+  background: rgba(6,13,28,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
-.logo {
-  font-family: "nexa", sans-serif;
+.logo-jogos {
+  font-family: "nexa", "Nunito", Arial, sans-serif;
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 4px;
   text-transform: uppercase;
   text-align: center;
   flex: 1;
+  -webkit-text-stroke: 0.3px currentColor; /* reforça o peso quando o navegador não tem a fonte no peso 900 */
 }
 
 .cabecalho-espaco {
@@ -56,7 +62,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 16px 14px;
+  padding: 20px 16px 14px;
   flex-shrink: 0;
   flex-wrap: wrap;
 }
@@ -180,7 +186,7 @@
 
 .tabela-cabecalho {
   display: grid;
-  grid-template-columns: 90px 1fr 80px 90px 44px;
+  grid-template-columns: 90px 1fr 80px 90px 20px;
   padding: 10px 16px;
   background: rgba(45,127,255,0.1);
   border: 1px solid rgba(45,127,255,0.2);
@@ -197,17 +203,38 @@
   color: rgba(255,255,255,0.5);
 }
 
+.tabela-cabecalho span:nth-child(3),
+.tabela-cabecalho span:nth-child(4) {
+  text-align: center;
+}
+
 .jogo-item {
   display: grid;
-  grid-template-columns: 90px 1fr 80px 90px 44px;
+  grid-template-columns: 90px 1fr 80px 90px 20px;
   align-items: center;
   padding: 16px;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 14px;
   margin-bottom: 8px;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
   animation: surgir 0.4s ease both;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  position: relative;
+}
+
+/* seta discreta no fim do card — indica que dá pra clicar */
+.jogo-item::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid rgba(255,255,255,0.35);
+  border-right: 2px solid rgba(255,255,255,0.35);
+  transform: rotate(45deg);
+  justify-self: end;
+  transition: border-color 0.2s, transform 0.15s;
 }
 
 .jogo-item:nth-child(2) { animation-delay: 0.05s; }
@@ -227,8 +254,17 @@
 }
 
 .jogo-item:hover {
-  background: rgba(45,127,255,0.07);
-  border-color: rgba(45,127,255,0.2);
+  background: rgba(45,127,255,0.09);
+  border-color: rgba(45,127,255,0.3);
+}
+
+.jogo-item:hover::after {
+  border-color: #4d9fff;
+  transform: rotate(45deg) translate(2px, -2px);
+}
+
+.jogo-item:active {
+  transform: scale(0.99);
 }
 
 .jogo-data {
@@ -251,6 +287,8 @@
   font-weight: 700;
   color: #fff;
   letter-spacing: 1px;
+  text-align: center;
+  justify-self: center;
 }
 
 .x {
@@ -262,10 +300,12 @@
 .jogo-resultado {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  justify-self: center;
 }
 
 .jogo-resultado svg {
@@ -277,35 +317,9 @@
 .jogo-resultado--vitoria { color: #3dd68c; }
 .jogo-resultado--derrota { color: #e8273a; }
 
-.botao-detalhes {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: rgba(45,127,255,0.12);
-  border: 1px solid rgba(45,127,255,0.25);
-  border-radius: 10px;
-  color: #fff;
-  text-decoration: none;
-  transition: background 0.2s, border-color 0.2s;
-  justify-self: end;
-}
-
-.botao-detalhes:hover {
-  background: rgba(45,127,255,0.25);
-  border-color: rgba(45,127,255,0.5);
-}
-
-.icone-detalhe {
-  width: 22px;
-  height: 22px;
-  margin-left: 3.5px;
-}
-
 
 /* ════════════════════════════════
-   BARRA INFERIOR — corrigida
+   BARRA INFERIOR — já era fixed
 ════════════════════════════════ */
 
 .barra-inferior {
@@ -360,11 +374,12 @@
 ════════════════════════════════ */
 
 @media (max-width: 359px) {
-  .cabecalho {
-    padding: 10px 12px;
+  .cabecalho-jogos {
+    padding: 18px 12px;
+    padding-top: calc(18px + env(safe-area-inset-top, 0px));
   }
 
-  .logo {
+  .logo-jogos {
     font-size: 13px;
     letter-spacing: 2px;
   }
@@ -374,7 +389,7 @@
   }
 
   .filtros {
-    padding: 0 10px 10px;
+    padding: 14px 10px 10px;
     gap: 6px;
   }
 
@@ -406,14 +421,19 @@
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
     grid-template-areas:
-      "adversario botao"
-      "placar     botao";
+      "adversario seta"
+      "placar     seta";
     column-gap: 10px;
     row-gap: 6px;
     padding: 10px 12px;
     border-radius: 10px;
     margin-bottom: 6px;
     align-items: start;
+  }
+
+  .jogo-item::after {
+    grid-area: seta;
+    align-self: center;
   }
 
   .jogo-data--coluna {
@@ -457,21 +477,6 @@
     height: 10px;
   }
 
-  .botao-detalhes {
-    grid-area: botao;
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    align-self: center;
-    justify-self: end;
-  }
-
-  .icone-detalhe {
-    width: 18px;
-    height: 18px;
-    margin-left: 2px;
-  }
-
   .lista-jogos {
     padding: 0 10px calc(env(safe-area-inset-bottom, 0px) + 72px);
   }
@@ -497,17 +502,18 @@
 ════════════════════════════════ */
 
 @media (min-width: 360px) and (max-width: 767px) {
-  .cabecalho {
-    padding: 12px 16px;
+  .cabecalho-jogos {
+    padding: 22px 16px;
+    padding-top: calc(22px + env(safe-area-inset-top, 0px));
   }
 
-  .logo {
+  .logo-jogos {
     font-size: 16px;
     letter-spacing: 3px;
   }
 
   .filtros {
-    padding: 0 12px 12px;
+    padding: 16px 12px 12px;
     gap: 10px;
     flex-wrap: wrap;
   }
@@ -524,7 +530,7 @@
 
   .tabela-cabecalho,
   .jogo-item {
-    grid-template-columns: 1fr 58px 80px 34px;
+    grid-template-columns: 1fr 58px 80px 18px;
   }
 
   .tabela-cabecalho {
@@ -579,12 +585,6 @@
     height: 11px;
   }
 
-  .botao-detalhes {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-  }
-
   .lista-jogos {
     padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 76px);
   }
@@ -600,16 +600,17 @@
 ════════════════════════════════ */
 
 @media (min-width: 768px) and (max-width: 1199px) {
-  .cabecalho {
-    padding: 20px 40px 16px;
+  .cabecalho-jogos {
+    padding: 28px 40px;
+    padding-top: calc(28px + env(safe-area-inset-top, 0px));
   }
 
-  .logo {
+  .logo-jogos {
     font-size: 28px;
   }
 
   .filtros {
-    padding: 0 40px 16px;
+    padding: 24px 40px 16px;
     gap: 10px;
   }
 
@@ -617,9 +618,12 @@
     padding: 0 40px 100px;
   }
 
-  .tabela-cabecalho,
+  .tabela-cabecalho {
+    grid-template-columns: 110px 1fr 90px 110px 24px;
+  }
+
   .jogo-item {
-    grid-template-columns: 110px 1fr 90px 110px 50px;
+    grid-template-columns: 110px 1fr 90px 110px 24px;
   }
 
   .tabela-cabecalho span {
@@ -650,26 +654,30 @@
 ════════════════════════════════ */
 
 @media (min-width: 1200px) {
-  .cabecalho {
-    padding: 16px 80px;
+  .cabecalho-jogos {
+    padding: 30px 80px;
+    padding-top: calc(30px + env(safe-area-inset-top, 0px));
   }
 
-  .logo {
+  .logo-jogos {
     font-size: 32px;
     letter-spacing: 5px;
   }
 
   .filtros {
-    padding: 0 80px 20px;
+    padding: 28px 80px 20px;
   }
 
   .lista-jogos {
     padding: 0 80px 100px;
   }
 
-  .tabela-cabecalho,
+  .tabela-cabecalho {
+    grid-template-columns: 120px 1fr 100px 120px 26px;
+  }
+
   .jogo-item {
-    grid-template-columns: 120px 1fr 100px 120px 54px;
+    grid-template-columns: 120px 1fr 100px 120px 26px;
   }
 
   .tabela-cabecalho {
@@ -680,11 +688,5 @@
   .jogo-item {
     padding: 18px 20px;
     border-radius: 18px;
-  }
-
-  .botao-detalhes {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
   }
 }

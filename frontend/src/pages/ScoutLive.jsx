@@ -63,7 +63,7 @@ const NOME_POSICAO = { Levantador: 'Levantador', Oposto: 'Oposto', Ponteiro: 'Po
 
 // fundamentos que geram ponto, por posição
 const FUNDAMENTOS_PONTUAM = {
-  Levantador: ['Saque', 'Bloqueio'],
+  Levantador: ['Saque', 'Bloqueio', 'Ataque'],
   Ponteiro:   ['Ataque', 'Saque', 'Bloqueio'],
   Oposto:     ['Ataque', 'Saque', 'Bloqueio'],
   Central:    ['Ataque', 'Saque', 'Bloqueio'],
@@ -73,33 +73,49 @@ const FUNDAMENTOS_PONTUAM = {
 // fundamentos que não geram ponto, por posição
 const FUNDAMENTOS_NAO_PONTUAM = {
   Levantador: ['Levantamento'],
-  Libero:     ['Recepção', 'Defesa'],
+  Libero:     ['Recepção', 'Defesa', 'Levantamento'],
   Ponteiro:   ['Recepção'],
   Oposto:     ['Defesa'],
   Central:    ['Defesa'],
 };
 
-/* ── HELPERS ────────────────────────────────────────────── */
-
-function cadastroDoJogador(j) {
-  return j?.position || j?.posicao || j?.cadastro || '—';
+// todos os fundamentos de uma posição, na ordem em que devem aparecer no card
+function fundamentosDaPosicao(posicao) {
+  return [...(FUNDAMENTOS_PONTUAM[posicao] || []), ...(FUNDAMENTOS_NAO_PONTUAM[posicao] || [])];
 }
 
-/* ── COMPONENTE: CARTÃO DE JOGADOR (tela principal) ────── */
+/* ── HELPERS ────────────────────────────────────────────── */
 
-function CartaoJogador({ titular, acertos, erros, onClick }) {
+// número de cadastro (camisa) do jogador, direto do cadastro do atleta
+function cadastroDoJogador(j) {
+  return j?.jersey_number ?? j?.number ?? j?.numero ?? j?.camisa ?? '—';
+}
+
+/* ── COMPONENTE: LINHA DE JOGADOR (tela principal) ──────── */
+
+function LinhaJogador({ titular, fundamentos, contagem, onClick }) {
   return (
-    <button type="button" className="cartao-jogador" onClick={onClick}>
-      <div className="cj-topo">
-        <span className="cj-numero">{titular.numero}</span>
-        <div className="cj-nomes">
-          <span className="cj-nome">{titular.nome}</span>
-          <span className="cj-posicao">{NOME_POSICAO[titular.posicao]}</span>
+    <button type="button" className="linha-jogador" onClick={onClick}>
+      <div className="lj-jogador">
+        <span className="lj-numero">{titular.numero}</span>
+        <div className="lj-nomes">
+          <span className="lj-nome">{titular.nome}</span>
+          <span className="lj-posicao">{NOME_POSICAO[titular.posicao]}</span>
         </div>
       </div>
-      <div className="cj-contagem">
-        <span className="cj-pill cj-pill--acerto"><IcCheck /> {acertos}</span>
-        <span className="cj-pill cj-pill--erro"><IcX /> {erros}</span>
+      <div className="lj-fundamentos">
+        {fundamentos.map(f => {
+          const c = contagem(f);
+          return (
+            <div key={f} className="lj-fundamento">
+              <span className="lj-flabel">{f}</span>
+              <div className="lj-fpills">
+                <span className="lj-fpill lj-fpill--acerto"><IcCheck /> {c.acerto}</span>
+                <span className="lj-fpill lj-fpill--erro"><IcX /> {c.erro}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </button>
   );
@@ -168,10 +184,14 @@ export default function ScoutLive() {
     carregarJogadores(time);
   }
 
-  // número de camisa: usa o cadastro real se existir, senão a ordem no elenco
+  // número exibido ao lado do nome: sempre o número de cadastro do atleta
+  // (campo jersey_number, preenchido no cadastro do jogador); só cai pra
+  // ordem no elenco se o atleta não tiver número de cadastro salvo
   const numerosMap = useMemo(() => {
     const mapa = {};
-    jogadores.forEach((j, i) => { mapa[j.id] = j.number ?? j.numero ?? j.camisa ?? (i + 1); });
+    jogadores.forEach((j, i) => {
+      mapa[j.id] = j.jersey_number ?? j.number ?? j.numero ?? j.camisa ?? (i + 1);
+    });
     return mapa;
   }, [jogadores]);
 
@@ -237,7 +257,17 @@ export default function ScoutLive() {
     setJogadorAberto(null);
   }
 
-  const getContagem = (jogadorId, tipo) => dados?.[jogadorId]?.[setAtual]?.[tipo] ?? 0;
+  // acertos/erros de UM fundamento específico, dentro do set atual
+  function getContagemFundamento(jogadorId, fundamento) {
+    const eventos = dados?.[jogadorId]?.[setAtual]?.eventos || [];
+    let acerto = 0, erro = 0;
+    eventos.forEach(ev => {
+      if (ev.fundamento === fundamento) {
+        if (ev.tipo === 'acerto') acerto += 1; else erro += 1;
+      }
+    });
+    return { acerto, erro };
+  }
 
   const titularAberto = titulares.find(t => t.id === jogadorAberto) || null;
 
@@ -483,27 +513,29 @@ export default function ScoutLive() {
       {/* ══════════════════════ TELA DE SCOUT ══════════════════════ */}
       {!escalacaoAberta && (
         <main className="main">
-          <div className="scout-tabs">
-            <span className="tabs-label">SET</span>
-            {[1, 2, 3, 4, 5].map(n => (
-              <button
-                key={n}
-                type="button"
-                className={`tab-set${n === setAtual ? ' ativo' : ''}`}
-                onClick={() => setSetAtual(n)}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
+          <div className="topo-scout">
+            <div className="scout-tabs">
+              <span className="tabs-label">SET</span>
+              {[1, 2, 3, 4, 5].map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`tab-set${n === setAtual ? ' ativo' : ''}`}
+                  onClick={() => setSetAtual(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
 
-          <div className="scout-acoes-topo">
-            <button type="button" className="btn-trocar" onClick={abrirTroca}>
-              <IcSwap /> Trocar
-            </button>
-            <button type="button" className="btn-salvar-scout" onClick={abrirSalvar}>
-              <IcSave /> Salvar scout
-            </button>
+            <div className="scout-acoes-topo">
+              <button type="button" className="btn-trocar" onClick={abrirTroca}>
+                <IcSwap /> Trocar
+              </button>
+              <button type="button" className="btn-salvar-scout" onClick={abrirSalvar}>
+                <IcSave /> Salvar scout
+              </button>
+            </div>
           </div>
 
           <div className="legenda">
@@ -515,11 +547,11 @@ export default function ScoutLive() {
 
           <div className="grade-jogadores">
             {titulares.map(t => (
-              <CartaoJogador
+              <LinhaJogador
                 key={t.id}
                 titular={t}
-                acertos={getContagem(t.id, 'acerto')}
-                erros={getContagem(t.id, 'erro')}
+                fundamentos={fundamentosDaPosicao(t.posicao)}
+                contagem={f => getContagemFundamento(t.id, f)}
                 onClick={() => setJogadorAberto(t.id)}
               />
             ))}
