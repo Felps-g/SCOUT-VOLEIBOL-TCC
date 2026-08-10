@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import '../../css/login.css';
 import { apiRequest, setAuthToken } from '../services/api.js';
 import { buscarPerfilAtual, salvarUsuarioLogado } from '../services/auth.js';
+import telaImg from '../assets/IMG/Tela.png';
 
 // ── MÁSCARA DE CPF ───────────────────────────
 function aplicarMascaraCpf(valor) {
@@ -177,17 +178,7 @@ export default function Login() {
     <div className="pagina">
 
       <div className="painel-lateral">
-        <div className="painel-conteudo">
-          <div className="painel-texto">
-            <h2 className="painel-titulo">SCOUT LIVE</h2>
-            <p className="painel-subtitulo">Acompanhe atletas, jogos e desempenho em tempo real.</p>
-          </div>
-          <div className="painel-decoracao">
-            <div className="circulo circulo--1"></div>
-            <div className="circulo circulo--2"></div>
-            <div className="circulo circulo--3"></div>
-          </div>
-        </div>
+        <img className="painel-imagem" src={telaImg} alt="Scout Live" />
       </div>
 
       <div className="painel-formulario">
