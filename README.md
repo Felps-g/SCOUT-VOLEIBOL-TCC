@@ -20,7 +20,7 @@ Muitos times amadores e escolares não têm acesso a ferramentas profissionais p
 ## Solução (o que o SCOUT oferece)
 - Interface simples para registro de ações em jogo (saques, recepções, levantamentos, ataques, bloqueios, defesas, erros).
 - Processamento automático de estatísticas por jogador, por set e por partida.
-- Visualizações fáceis de interpretar (mapas de calor, gráficos de desempenho, relatórios comparativos).
+- Visualizações fáceis de interpretar.
 - Exportação de relatórios para impressão ou compartilhamento.
 - Priorização de usabilidade para treinadores sem formação técnica.
 
@@ -46,7 +46,6 @@ Muitos times amadores e escolares não têm acesso a ferramentas profissionais p
 
 ### Funcionalidades planejadas
 - Mobile responsiveness aprimorada para uso em tablets durante partidas.
-- Interface de gravação/registro mais rápida (atalhos, entrada por toque).
 - Visualizações avançadas conforme necessidade.
 - Comparações entre partidas e relatórios automatizados.
 - Comunidade e contribuições externas.
@@ -55,7 +54,7 @@ Muitos times amadores e escolares não têm acesso a ferramentas profissionais p
 - Felipe Gianinni — Backend, processamento de dados, análise estatística e coordenação do projeto.
 - João Pardinho (Fabrizio) — Frontend e design de interface.
 
-## Stack Tecnológico (preencha com o que o projeto usa)
+## Stack Tecnológico
 - Frontend: JavaScript / React 
 - Estilo: CSS 
 - Backend: Javascript / Express
