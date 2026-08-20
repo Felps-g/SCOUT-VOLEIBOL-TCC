@@ -1,12 +1,12 @@
-# SCOUT — Plataforma de Análise de Voleibol
+# SCOUT LIVE — Plataforma de Análise de Voleibol
 
-> SCOUT é uma plataforma gratuita de análise de voleibol pensada para times amadores e escolares, que facilita a coleta, o processamento e a visualização de estatísticas de partida.
+> SCOUT LIVE é uma plataforma gratuita de análise de voleibol pensada para times amadores e escolares, que facilita a coleta, o processamento e a visualização de estatísticas de partida.
 
 [![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)]()
 [![License](https://img.shields.io/badge/license-[LICENSE]-blue)]()
 
 ## Visão geral
-O SCOUT tem como objetivo democratizar o acesso a análises esportivas no voleibol, oferecendo uma ferramenta simples e acessível que ajuda treinadores e atletas a tomar decisões baseadas em dados, identificar padrões de desempenho e melhorar processos de treino mesmo com recursos limitados.
+O SCOUT LIVE tem como objetivo democratizar o acesso a análises esportivas no voleibol, oferecendo uma ferramenta simples e acessível que ajuda treinadores e atletas a tomar decisões baseadas em dados, identificar padrões de desempenho e melhorar processos de treino mesmo com recursos limitados.
 
 ## Impacto
 - Reduz a dependência de análises manuais (planilhas) e interpretações subjetivas.
@@ -40,33 +40,28 @@ Muitos times amadores e escolares não têm acesso a ferramentas profissionais p
 
 ### Recursos atuais
 - Registro manual de ações por partida.
-- Visualizações básicas (gráficos de frequência e desempenho).
+- Visualizações de estatísticas em gráficos de acertos/erros e aproveitamento.
 - Relatórios por jogador e por partida.
 - Exportação CSV.
 
 ### Funcionalidades planejadas
 - Mobile responsiveness aprimorada para uso em tablets durante partidas.
 - Interface de gravação/registro mais rápida (atalhos, entrada por toque).
-- Visualizações avançadas (mapas de calor por ponto de ataque, rotas).
+- Visualizações avançadas conforme necessidade.
 - Comparações entre partidas e relatórios automatizados.
-- Integração com importação/exportação em formatos usados por treinadores.
 - Comunidade e contribuições externas.
 
 ## Equipe
-- Felipe [Sobrenome] — Backend, processamento de dados, análise estatística e coordenação do projeto.
-- [Nome do(a) colega] — Frontend e design de interface.
-
-(Coloque nomes completos conforme preferir)
+- Felipe Gianinni — Backend, processamento de dados, análise estatística e coordenação do projeto.
+- João Pardinho (Fabrizio) — Frontend e design de interface.
 
 ## Stack Tecnológico (preencha com o que o projeto usa)
-- Frontend: JavaScript (framework/biblioteca: React / Vue / Svelte / outro)
-- Estilo: CSS / pré-processador (Sass, Tailwind etc.)
-- Backend: Node.js / Express ou [especifique se houver backend]
-- Banco de dados: SQLite / PostgreSQL / outro
-- Visualização: Chart.js, D3.js, Recharts ou outra biblioteca
-- Ferramentas: Git, GitHub, npm/yarn
-
-> Observação: substitua os itens acima pelos frameworks e bibliotecas reais utilizados no projeto.
+- Frontend: JavaScript / React 
+- Estilo: CSS 
+- Backend: Javascript / Express
+- Banco de dados: PostgreSQL
+- Visualização: Chart.js
+- Ferramentas: Git, GitHub, npm, Supabase
 
 ## Arquitetura do sistema
 ```text
